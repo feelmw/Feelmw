@@ -42,6 +42,7 @@ namespace FeelmwLogistika
             AppEstiloa.BotoiIrten(btnIrten);
             AppEstiloa.BotoiNagusia(btnJarraitu);
 
+            Resize += (s, e) => MenuaKokatu();
         }
 
         private void btnLogistika_Click(object sender, EventArgs e)
@@ -80,13 +81,14 @@ namespace FeelmwLogistika
 
         private void btnJarraitu_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(motaHelburua) || cbxMota.SelectedItem == null)
+            string mota = cbxMota.SelectedItem?.ToString() ?? cbxMota.Text.Trim();
+            bool motaBaliozkoa = cbxMota.Items.Cast<object>().Any(item => string.Equals(item.ToString(), mota, StringComparison.OrdinalIgnoreCase));
+            if (string.IsNullOrWhiteSpace(motaHelburua) || !motaBaliozkoa)
             {
                 MessageBox.Show("Aukeratu bidaia mota jarraitu aurretik.");
                 return;
             }
 
-            string mota = cbxMota.SelectedItem.ToString() ?? "";
             string helburua = motaHelburua;
             motaHelburua = "";
 
@@ -291,6 +293,47 @@ namespace FeelmwLogistika
             btnDokumentazioa.Visible = true;
             btnEditatu.Text = "📄 Editatu dok.";
             cbxMota.SelectedIndex = -1;
+            MenuaKokatu();
+        }
+
+        private void MenuaKokatu()
+        {
+            panelak.Bounds = ClientRectangle;
+
+            int zabalera = ClientSize.Width;
+            int altuera = ClientSize.Height;
+            if (zabalera <= 0 || altuera <= 0)
+            {
+                return;
+            }
+
+            lblMyfeel.Location = new Point(
+                Math.Max(20, (zabalera - lblMyfeel.Width) / 2),
+                Math.Max(45, altuera / 6));
+
+            int erdia = zabalera / 2;
+            int lehenLerroa = Math.Min(altuera - 175, Math.Max(lblMyfeel.Bottom + 120, altuera / 2 + 70));
+            lehenLerroa = Math.Max(lblMyfeel.Bottom + 70, lehenLerroa);
+
+            int bigarrenLerroa = lehenLerroa + 80;
+            if (bigarrenLerroa + btnEditatu.Height > altuera - 35)
+            {
+                bigarrenLerroa = altuera - btnEditatu.Height - 35;
+                lehenLerroa = bigarrenLerroa - 80;
+            }
+
+            btnLogistika.Location = new Point(erdia - 275, lehenLerroa);
+            btnPlangintza.Location = new Point(erdia - btnPlangintza.Width / 2, lehenLerroa);
+            btnDokumentazioa.Location = new Point(erdia + 145, lehenLerroa);
+            btnEditatu.Location = new Point(erdia - 185, bigarrenLerroa);
+            btnIrten.Location = new Point(erdia + 35, bigarrenLerroa);
+
+            lblMota.Location = new Point(Math.Max(20, erdia - cbxMota.Width / 2), Math.Max(lblMyfeel.Bottom + 55, altuera / 3));
+            cbxMota.Location = new Point(lblMota.Left, lblMota.Bottom + 15);
+            btnJarraitu.Location = new Point(erdia - btnJarraitu.Width / 2, cbxMota.Bottom + 35);
+
+            lblDoku.Location = lblMota.Location;
+            cbxDoku.Location = cbxMota.Location;
         }
 
         private void DokumentuaAukeratu(SheetInfo sheet)

@@ -289,7 +289,9 @@ namespace FeelmwLogistika.Plangintza.Formularioak
             egunak.Remove(eguna);
 
             List<ExelaSortu.EkintzaDatuak> lotutakoEkintzak = bidaia.EkintzaDatuak
-                .Where(e => e.Eguna == eguna.Data || e.Eguna == $"{eguna.Eguna}. eguna")
+                .Where(e => e.Eguna == eguna.Data
+                    || e.Eguna == $"{eguna.Eguna}. eguna"
+                    || e.Eguna == $"Eguna{eguna.Eguna}")
                 .ToList();
 
             foreach (ExelaSortu.EkintzaDatuak ekintza in lotutakoEkintzak)

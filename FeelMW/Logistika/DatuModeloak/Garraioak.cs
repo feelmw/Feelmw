@@ -12,7 +12,7 @@ namespace FeelmwLogistika.Logistika.DatuModeloak
         private string garraioaIzena;
         private string eguna;
         private string ordutegia;
-        private string lokalizatzailea;
+        private string lokalizatzailea = BalioLehenetsiak.Lokalizatzailea;
         private string kontaktua;
         private string elkargunea;
         private string eginbeharrak;

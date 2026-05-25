@@ -68,11 +68,6 @@ namespace FeelmwLogistika.Formularioak
                 MessageBox.Show("Ezin izan dira ostatuak kargatu: " + ex.Message);
             }
 
-            if (this.LisOst.Count > 0)
-            {
-                this.LisOst.RemoveAt(0);
-            }
-
             cbxOstala.Items.Clear();
             foreach (Ostalak ost in LisOst)
             {

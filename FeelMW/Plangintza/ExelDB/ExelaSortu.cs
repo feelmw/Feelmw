@@ -306,12 +306,20 @@ namespace FeelmwLogistika.Plangintza.ExelDB
                 CeldaTestua(row.Cell(5)),
                 CeldaTestua(row.Cell(6))
             ));
-            datuak.Ekintzak.Add(new EkintzaDatuak(
-                datuak.Data,
-                CeldaTestua(row.Cell(7)),
-                CeldaTestua(row.Cell(8)),
-                CeldaTestua(row.Cell(9))
-            ));
+            string ordua = CeldaTestua(row.Cell(7));
+            string mota = CeldaTestua(row.Cell(8));
+            string deskribapena = CeldaTestua(row.Cell(9));
+            if (!string.IsNullOrWhiteSpace(ordua)
+                || !string.IsNullOrWhiteSpace(mota)
+                || !string.IsNullOrWhiteSpace(deskribapena))
+            {
+                datuak.Ekintzak.Add(new EkintzaDatuak(
+                    datuak.Data,
+                    ordua,
+                    mota,
+                    deskribapena
+                ));
+            }
             datuak.Hotela = new HotelDatuak("", datuak.Ostala, "", datuak.EgunKop, datuak.Data);
 
             return datuak;

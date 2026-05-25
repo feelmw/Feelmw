@@ -763,7 +763,8 @@ namespace FeelmwLogistika.Plangintza.Formularioak
         {
             tlpEkintzak.Controls.Clear();
             tlpEkintzak.RowStyles.Clear();
-            tlpEkintzak.RowCount = ekintzaKontrolak.Count + 1;
+            tlpEkintzak.RowCount = ekintzaKontrolak.Count + 2;
+            tlpEkintzak.RowStyles.Add(new RowStyle(SizeType.Absolute, 36F));
 
             GehituEkintzaGoiburua("Eguna", 0);
             GehituEkintzaGoiburua("Ordua", 1);
@@ -781,6 +782,7 @@ namespace FeelmwLogistika.Plangintza.Formularioak
                 tlpEkintzak.Controls.Add(ekintza.Deskribapena, 3, row);
                 tlpEkintzak.Controls.Add(ekintza.Ezabatu, 4, row);
             }
+            tlpEkintzak.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
 
             AppEstiloa.KontrolakAplikatu(tlpEkintzak.Controls);
         }
