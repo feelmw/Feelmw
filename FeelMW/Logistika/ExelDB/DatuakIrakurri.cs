@@ -39,7 +39,8 @@ namespace FeelmwLogistika.Logistika.ExelDB
             List<Ostalak> LisOst = new List<Ostalak>();
             Ostalak osta;
 
-            string range = "Ostalak!A:P";
+            // Drive eskema: A:Q (17 zutabe). Excel lokalak 21 zutabe erabiltzen ditu.
+            string range = "Ostalak!A:Q";
             Baimenak.Autentikazioa();
 
             var request = Baimenak.service.Spreadsheets.Values.Get(DatuBaseID, range);
@@ -51,11 +52,16 @@ namespace FeelmwLogistika.Logistika.ExelDB
             {
                 foreach (var row in values)
                 {
-                    if (row == null || row.Count == 0)
+                    if (RowHutsa(row) || GoiburuaDa(RowBalioa(row, 0), "ostala", "izena", "hotela"))
                     {
-                        continue; // Salta filas vacías
+                        continue;
                     }
                     string ostala = RowBalioa(row, 0);
+                    if (string.IsNullOrWhiteSpace(ostala))
+                    {
+                        continue;
+                    }
+
                     string bonoa = RowBalioa(row, 1);
                     string helbidea = RowBalioa(row, 2);
                     string checin = RowBalioa(row, 3);
@@ -71,6 +77,7 @@ namespace FeelmwLogistika.Logistika.ExelDB
                     string bazkaria = RowBalioa(row, 13);
                     string afaria = RowBalioa(row, 14);
                     string fidantza = RowBalioa(row, 15);
+                    string fidantzaKuota = RowBalioa(row, 16);
 
                     osta = new Ostalak(
                         ostala,
@@ -90,7 +97,7 @@ namespace FeelmwLogistika.Logistika.ExelDB
                         Parseatu(toailak),
                         Parseatu(izarak),
                         Parseatu(fidantza),
-                        "",
+                        fidantzaKuota,
                         Parseatu(luga),
                         lugapre,
                         instalazioak
@@ -108,7 +115,8 @@ namespace FeelmwLogistika.Logistika.ExelDB
 
         public static void OstalaGehitu(Ostalak ost)
         {
-            string range = "Ostalak!A:P";
+            // Drive eskema: A:Q (17 zutabe). Excel lokalak 21 zutabe erabiltzen ditu.
+            string range = "Ostalak!A:Q";
 
             Baimenak.Autentikazioa();
 
@@ -131,7 +139,8 @@ namespace FeelmwLogistika.Logistika.ExelDB
                 ost.Gosariates,
                 ost.Bazkariates,
                 ost.Afariates,
-                BoolToBaiEz(ost.Fidantza)
+                BoolToBaiEz(ost.Fidantza),
+                ost.FidantzaKuota
             };
 
             valueRange.Values = new List<IList<object>> { objectList };
@@ -161,11 +170,12 @@ namespace FeelmwLogistika.Logistika.ExelDB
             {
                 foreach (var row in values)
                 {
-                    if (row == null || row.Count == 0)
-                    {
-                        continue; // Salta filas vacías
-                    }
+                    if (RowHutsa(row) || GoiburuaDa(RowBalioa(row, 0), "ekintza", "izena"))
+                        continue;
                     string ekintza = row.Count > 0 ? row[0].ToString() ?? "" : "";
+                    if (string.IsNullOrWhiteSpace(ekintza))
+                        continue;
+
                     string bonoa = row.Count > 1 ? row[1].ToString() ?? "" : "";
                     string iraupena = row.Count > 2 ? row[2].ToString() ?? "" : "";
                     string kontaktua = row.Count > 3 ? row[3].ToString() ?? "" : "";
@@ -224,9 +234,33 @@ namespace FeelmwLogistika.Logistika.ExelDB
             return row.Count > index ? row[index].ToString() ?? "" : "";
         }
 
+        private static bool RowHutsa(IList<object>? row)
+        {
+            return row == null || row.Count == 0 || row.All(c => string.IsNullOrWhiteSpace(c?.ToString()));
+        }
+
         private static string Gelaxka(IXLRangeRow row, int zutabea)
         {
-            return row.Cell(zutabea).GetValue<string>() ?? "";
+            return row.Cell(zutabea).GetFormattedString() ?? "";
+        }
+
+        private static bool ExcelRowHutsa(IXLRangeRow row, int zutabeKop)
+        {
+            for (int i = 1; i <= zutabeKop; i++)
+            {
+                if (!string.IsNullOrWhiteSpace(Gelaxka(row, i)))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool GoiburuaDa(string lehenZutabea, params string[] aukerak)
+        {
+            string balioa = (lehenZutabea ?? "").Trim();
+            return aukerak.Any(a => string.Equals(balioa, a, StringComparison.OrdinalIgnoreCase));
         }
 
         private static bool OstalaFormatuBerriaDa(IXLRangeRow row)
@@ -296,8 +330,18 @@ namespace FeelmwLogistika.Logistika.ExelDB
                         {
                             foreach (var row in rango.Rows())
                             {
+                                if (ExcelRowHutsa(row, 21) || GoiburuaDa(Gelaxka(row, 1), "ostala", "izena", "hotela"))
+                                {
+                                    continue;
+                                }
+
                                 bool formatuBerria = OstalaFormatuBerriaDa(row);
                                 string ostala = Gelaxka(row, 1);
+                                if (string.IsNullOrWhiteSpace(ostala))
+                                {
+                                    continue;
+                                }
+
                                 string bonoa = Gelaxka(row, 2);
                                 string helbidea = Gelaxka(row, 3);
                                 string lokali = formatuBerria ? Gelaxka(row, 4) : BalioLehenetsiak.Lokalizatzailea;
@@ -364,19 +408,29 @@ namespace FeelmwLogistika.Logistika.ExelDB
                         {
                             foreach (var row in rango.Rows())
                             {
-                                string ekintza = row.Cell(1).GetValue<string>();
-                            string bonoa = row.Cell(2).GetValue<string>();
-                            string iraupena = row.Cell(3).GetValue<string>();
-                            string kontaktua = row.Cell(4).GetValue<string>();
-                            string elkartokia = row.Cell(5).GetValue<string>();
-                            string iristean = row.Cell(6).GetValue<string>();
-                            string eramanM = row.Cell(7).GetValue<string>();
-                            string bertanM = row.Cell(8).GetValue<string>();
-                            string aldagela = row.Cell(9).GetValue<string>();
-                            string komuna = row.Cell(10).GetValue<string>();
-                            string egonlekua = row.Cell(11).GetValue<string>();
-                            string informazioa = row.Cell(12).GetValue<string>();
-                            string lokali = row.Cell(13).GetValue<string>();
+                                if (ExcelRowHutsa(row, 13) || GoiburuaDa(Gelaxka(row, 1), "ekintza", "izena"))
+                                {
+                                    continue;
+                                }
+
+                                string ekintza = Gelaxka(row, 1);
+                            if (string.IsNullOrWhiteSpace(ekintza))
+                            {
+                                continue;
+                            }
+
+                            string bonoa = Gelaxka(row, 2);
+                            string iraupena = Gelaxka(row, 3);
+                            string kontaktua = Gelaxka(row, 4);
+                            string elkartokia = Gelaxka(row, 5);
+                            string iristean = Gelaxka(row, 6);
+                            string eramanM = Gelaxka(row, 7);
+                            string bertanM = Gelaxka(row, 8);
+                            string aldagela = Gelaxka(row, 9);
+                            string komuna = Gelaxka(row, 10);
+                            string egonlekua = Gelaxka(row, 11);
+                            string informazioa = Gelaxka(row, 12);
+                            string lokali = Gelaxka(row, 13);
 
                             Eki = new Ekintzak(
                                 ekintza,
@@ -414,14 +468,24 @@ namespace FeelmwLogistika.Logistika.ExelDB
                         {
                             foreach (var row in rango.Rows())
                             {
-                                string garraioa = row.Cell(1).GetValue<string>();
-                            string eguna = row.Cell(2).GetValue<string>();
-                            string ordutegia = row.Cell(3).GetValue<string>();
-                            string lokali = row.Cell(4).GetValue<string>();
-                            string kontaktua = row.Cell(5).GetValue<string>();
-                            string elkartokia = row.Cell(6).GetValue<string>();
-                            string eginbeharrak = row.Cell(7).GetValue<string>();
-                            string info = row.Cell(8).GetValue<string>();
+                                if (ExcelRowHutsa(row, 8) || GoiburuaDa(Gelaxka(row, 1), "garraioa", "izena"))
+                                {
+                                    continue;
+                                }
+
+                                string garraioa = Gelaxka(row, 1);
+                            if (string.IsNullOrWhiteSpace(garraioa))
+                            {
+                                continue;
+                            }
+
+                            string eguna = Gelaxka(row, 2);
+                            string ordutegia = Gelaxka(row, 3);
+                            string lokali = Gelaxka(row, 4);
+                            string kontaktua = Gelaxka(row, 5);
+                            string elkartokia = Gelaxka(row, 6);
+                            string eginbeharrak = Gelaxka(row, 7);
+                            string info = Gelaxka(row, 8);
 
                             Gar = new Garraioak(
                                 garraioa,

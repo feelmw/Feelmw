@@ -43,8 +43,8 @@ namespace FeelmwLogistika.Logistika.DatuModeloak
             public string OstalaIzena { get => ostalaIzena; set => ostalaIzena = value ?? ""; }
             public string Bonoa { get => bonoa; set => bonoa = value ?? ""; }
             public string Helbidea { get => helbidea; set => helbidea = value ?? ""; }
-            public string Lokalizatzailea { get => lokalizatzailea; set => lokalizatzailea = string.IsNullOrWhiteSpace(value) ? BalioLehenetsiak.Lokalizatzailea : value; }
-            public int Gauak { get => gauak; set => gauak = value < BalioLehenetsiak.Gauak ? BalioLehenetsiak.Gauak : value; }
+            public string Lokalizatzailea { get => lokalizatzailea; set => lokalizatzailea = value ?? ""; }
+            public int Gauak { get => gauak; set => gauak = value; }
             public string Datak { get => datak; set => datak = value ?? ""; }
             public string Gelak { get => gelak; set => gelak = value ?? ""; }
 

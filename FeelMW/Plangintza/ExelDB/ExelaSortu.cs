@@ -199,7 +199,9 @@ namespace FeelmwLogistika.Plangintza.ExelDB
                 return datuak;
             }
 
-            IXLRangeRow row = range.FirstRowUsed();
+            IXLRangeRow row = GoiburuaDa(CeldaTestua(range.FirstRowUsed().Cell(1)))
+                ? range.RowsUsed().Skip(1).FirstOrDefault() ?? range.FirstRowUsed()
+                : range.FirstRowUsed();
             datuak.Ostala = CeldaTestua(row.Cell(1));
             datuak.EgunKop = Math.Max(1, CeldaEnteroa(row.Cell(2), 1));
             datuak.Data = CeldaTestua(row.Cell(3));
@@ -229,7 +231,12 @@ namespace FeelmwLogistika.Plangintza.ExelDB
                 return new HotelDatuak("", "", "", egunKop, "");
             }
 
-            IXLRangeRow row = range.RowsUsed().Skip(1).FirstOrDefault() ?? range.FirstRowUsed();
+            IXLRangeRow? row = range.RowsUsed().Skip(1).FirstOrDefault();
+            if (row == null)
+            {
+                return new HotelDatuak("", "", "", egunKop, "");
+            }
+
             return new HotelDatuak(
                 CeldaTestua(row.Cell(1)),
                 CeldaTestua(row.Cell(2)),
@@ -255,13 +262,21 @@ namespace FeelmwLogistika.Plangintza.ExelDB
                 return balioa;
             }
 
-            string testua = cell.GetValue<string>();
+            string testua = CeldaTestua(cell);
             return int.TryParse(testua, out balioa) ? balioa : lehenetsia;
         }
 
         private static string CeldaTestua(IXLCell cell)
         {
-            return cell.GetValue<string>() ?? "";
+            return cell.GetFormattedString() ?? "";
+        }
+
+        private static bool GoiburuaDa(string balioa)
+        {
+            balioa = (balioa ?? "").Trim();
+            return string.Equals(balioa, "Ostala", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(balioa, "Hotela", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(balioa, "Hotel izena", StringComparison.OrdinalIgnoreCase);
         }
 
         private static void HotelakIdatzi(IXLWorksheet sheet, HotelDatuak hotela)

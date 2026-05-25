@@ -80,7 +80,21 @@ namespace FeelmwLogistika.Plangintza
             }
 
             string izenNormalizatua = IzenNormalizatua(ostalaIzena);
-            return hotelak.FirstOrDefault(h => IzenNormalizatua(h.Izena) == izenNormalizatua);
+            List<Hotelak> hotelZerrenda = hotelak
+                .Where(h => !string.IsNullOrWhiteSpace(h.Izena))
+                .ToList();
+
+            Hotelak? zehatza = hotelZerrenda.FirstOrDefault(h => IzenNormalizatua(h.Izena) == izenNormalizatua);
+            if (zehatza != null)
+            {
+                return zehatza;
+            }
+
+            List<Hotelak> partzialak = hotelZerrenda
+                .Where(h => IzenPartzialSegurua(izenNormalizatua, IzenNormalizatua(h.Izena)))
+                .ToList();
+
+            return partzialak.Count == 1 ? partzialak[0] : null;
         }
 
         public static KargaEmaitza KargatuPlangintzaOstaletik(IEnumerable<Hotelak>? hotelak)
@@ -122,7 +136,7 @@ namespace FeelmwLogistika.Plangintza
             Hotelak? hotela = BuscarHotelPorNombre(hotelak, ostala.OstalaIzena);
             if (hotela == null)
             {
-                abisua = $"Ez da aurkitu Plangintzan '{ostala.OstalaIzena}' izeneko hotel baliokiderik. Aukeratu eskuz cbxOstala/cbxHotela eremuan.";
+                abisua = HotelLoturaAbisua(hotelak, ostala.OstalaIzena);
                 return null;
             }
 
@@ -170,15 +184,17 @@ namespace FeelmwLogistika.Plangintza
 
         private static Bidaiak BidaiaSortu(Ostalak ostala, Hotelak hotela)
         {
+            int gauak = Math.Max(1, ostala.Gauak);
+            int egunKop = Math.Max(2, gauak + 1);
             List<ExelaSortu.EgunLaburpena> egunak = new List<ExelaSortu.EgunLaburpena>();
-            for (int i = 1; i <= ostala.Gauak; i++)
+            for (int i = 1; i <= egunKop; i++)
             {
                 egunak.Add(new ExelaSortu.EgunLaburpena(i, "", "", "", ""));
             }
 
             return new Bidaiak(
                 hotela,
-                ostala.Gauak,
+                egunKop,
                 egunak,
                 new List<ExelaSortu.EkintzaDatuak>()
             );
@@ -210,6 +226,30 @@ namespace FeelmwLogistika.Plangintza
             }
 
             return Regex.Replace(izena.Trim(), @"\s+", " ").ToUpperInvariant();
+        }
+
+        private static bool IzenPartzialSegurua(string ostala, string hotela)
+        {
+            if (ostala.Length < 6 || hotela.Length < 6)
+            {
+                return false;
+            }
+
+            return hotela.Contains(ostala) || ostala.Contains(hotela);
+        }
+
+        private static string HotelLoturaAbisua(IEnumerable<Hotelak>? hotelak, string ostalaIzena)
+        {
+            string izenNormalizatua = IzenNormalizatua(ostalaIzena);
+            int antzekoak = hotelak?
+                .Count(h => IzenPartzialSegurua(izenNormalizatua, IzenNormalizatua(h.Izena))) ?? 0;
+
+            if (antzekoak > 1)
+            {
+                return $"Plangintzan '{ostalaIzena}' ostatuarentzako lotura bat baino gehiago aurkitu da. Aukeratu eskuz cbxOstala/cbxHotela eremuan.";
+            }
+
+            return $"Ez da aurkitu Plangintzan '{ostalaIzena}' izeneko hotel baliokiderik. Aukeratu eskuz cbxOstala/cbxHotela eremuan.";
         }
 
         public class KargaEmaitza

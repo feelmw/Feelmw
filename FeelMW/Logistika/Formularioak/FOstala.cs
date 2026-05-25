@@ -99,6 +99,11 @@ namespace FeelmwLogistika.Formularioak
 
         private void btnGorde_Click(object sender, EventArgs e)
         {
+            if (!OstalaIzenaBaliozkoa())
+            {
+                return;
+            }
+
             Ost = OstalaSortu();
             LogistikaPlangintzaZubia.OstalaGorde(Ost);
 
@@ -137,14 +142,12 @@ namespace FeelmwLogistika.Formularioak
 
         private void btnGehitu_Click(object sender, EventArgs e)
         {
-            Ost = OstalaSortu();
-            LogistikaPlangintzaZubia.OstalaGorde(Ost);
-
-            if (string.IsNullOrWhiteSpace(Ost.OstalaIzena))
+            if (!OstalaIzenaBaliozkoa())
             {
-                MessageBox.Show("Ostatuak izen bat behar du.");
                 return;
             }
+
+            Ost = OstalaSortu();
 
             if (!LisOst.Any(o => o.OstalaIzena.Equals(Ost.OstalaIzena, StringComparison.OrdinalIgnoreCase)))
             {
@@ -158,6 +161,7 @@ namespace FeelmwLogistika.Formularioak
                     return;
                 }
 
+                LogistikaPlangintzaZubia.OstalaGorde(Ost);
                 this.Close();
             }
             else
@@ -167,10 +171,10 @@ namespace FeelmwLogistika.Formularioak
         }
         private Ostalak OstalaSortu()
         {
-            string lokalizatzailea = LokaliBalioa();
-            int gauak = GauakBalioa((int)nudGauak.Value);
-            string datak = datHasiera.Value.ToShortDateString() + " - " + datAmaiera.Value.ToShortDateString();
-            string gelak = txtGelak.Text;
+            string lokalizatzailea = EsKlasikoa ? ostalaEditatzen?.Lokalizatzailea ?? "" : LokaliBalioa();
+            int gauak = EsKlasikoa ? ostalaEditatzen?.Gauak ?? 0 : GauakBalioa((int)nudGauak.Value);
+            string datak = EsKlasikoa ? ostalaEditatzen?.Datak ?? "" : datHasiera.Value.ToShortDateString() + " - " + datAmaiera.Value.ToShortDateString();
+            string gelak = EsKlasikoa ? ostalaEditatzen?.Gelak ?? "" : txtGelak.Text;
 
             Ostalak ostala = new Ostalak(
                 cbxOstala.Text,
@@ -198,6 +202,18 @@ namespace FeelmwLogistika.Formularioak
             );
 
             return ostala;
+        }
+
+        private bool OstalaIzenaBaliozkoa()
+        {
+            if (!string.IsNullOrWhiteSpace(cbxOstala.Text))
+            {
+                return true;
+            }
+
+            MessageBox.Show("Ostatuaren izena bete behar da gorde aurretik.");
+            cbxOstala.Focus();
+            return false;
         }
 
         private void AplicarModoKlasikoa()

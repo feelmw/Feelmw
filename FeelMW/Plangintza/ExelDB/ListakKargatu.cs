@@ -56,6 +56,9 @@ namespace FeelmwLogistika.Plangintza.ExelDB
                         ? cells[1].FormattedValue ?? ""
                         : "";
 
+                    if (string.IsNullOrWhiteSpace(ostala) || GoiburuaDa(ostala, "ostala", "hotela", "hotel izena", "izena"))
+                        continue;
+
                     string url = "";
 
                     if (cells.Count > 2)
@@ -97,17 +100,14 @@ namespace FeelmwLogistika.Plangintza.ExelDB
             {
                 foreach (var row in values)
                 {
-                    if (row == null || row.Count == 0)
+                    if (RowHutsa(row) || GoiburuaDa(RowBalioa(row, 0), "ekintza", "mota", "izena"))
                         continue;
                     var cells = row;
-                    string mota =
-                        cells.Count > 0
-                        ? cells[0].ToString() ?? ""
-                        : "";
-                    string deskripzioa =
-                        cells.Count > 1
-                        ? cells[1].ToString() ?? ""
-                        : "";
+                    string mota = RowBalioa(cells, 0);
+                    if (string.IsNullOrWhiteSpace(mota))
+                        continue;
+
+                    string deskripzioa = RowBalioa(cells, 1);
                     ekintza= new EkintzakPlan(mota, deskripzioa);
                     LisEkintzak.Add(ekintza);
                 }
@@ -146,6 +146,27 @@ namespace FeelmwLogistika.Plangintza.ExelDB
                 SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
 
             appendRequest.Execute();
+        }
+
+        private static string RowBalioa(IList<object> row, int index)
+        {
+            return row.Count > index ? row[index].ToString() ?? "" : "";
+        }
+
+        private static bool RowHutsa(IList<object>? row)
+        {
+            return row == null || row.Count == 0 || row.All(c => string.IsNullOrWhiteSpace(c?.ToString()));
+        }
+
+        private static bool RowHutsa(params string[] balioak)
+        {
+            return balioak.All(string.IsNullOrWhiteSpace);
+        }
+
+        private static bool GoiburuaDa(string lehenZutabea, params string[] aukerak)
+        {
+            string balioa = (lehenZutabea ?? "").Trim();
+            return aukerak.Any(a => string.Equals(balioa, a, StringComparison.OrdinalIgnoreCase));
         }
     }
 }
