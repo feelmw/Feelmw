@@ -68,9 +68,6 @@ namespace FeelmwLogistika.Logistika.ExelDB
                 Table tablaEkintzak1 = tablas[3];
                 Table tablaEkintzak2 = tablas[4];
                 Table tablaGarraioak1 = tablas[5];
-                EliminarFilasComidaHutsak(tablaOstalak1, ostalak.Take(3).ToList());
-                EliminarFilasComidaHutsak(tablaOstalak2, ostalak.Skip(3).Take(3).ToList());
-
                 z1 = ostalak.Count;
                 if (z1 == 0)
                 {
@@ -137,9 +134,6 @@ namespace FeelmwLogistika.Logistika.ExelDB
         { $"{{{{ost_checkout_{index}}}}}", o.Checkout },
         { $"{{{{ost_doc_{index}}}}}", o.Dokumentazioa },
         { $"{{{{ost_harrera_{index}}}}}", o.Harrera },
-        { $"{{{{ost_gosaria_{index}}}}}", o.Gosariates },
-        { $"{{{{ost_bazkaria_{index}}}}}", o.Bazkariates },
-        { $"{{{{ost_afaria_{index}}}}}", o.Afariates },
         { $"{{{{ost_toallak_{index}}}}}", o.Toailak ? "Bai" : "Ez" },
         { $"{{{{ost_izarak_{index}}}}}", o.Izarak ? "Bai" : "Ez" },
         { $"{{{{ost_fidantza_{index}}}}}", o.Fidantza ? o.FidantzaKuota : "Ez" },
@@ -147,7 +141,16 @@ namespace FeelmwLogistika.Logistika.ExelDB
         { $"{{{{ost_inst_{index}}}}}", o.Instalazioak }
     };
 
-            OrdezkatuMarkak(body, mapa);
+            foreach (var text in body.Descendants<WordText>())
+            {
+                foreach (var item in mapa)
+                {
+                    if (text.Text.Contains(item.Key))
+                    {
+                        text.Text = text.Text.Replace(item.Key, item.Value);
+                    }
+                }
+            }
         }
 
         private  static void ReemplazarEkintza(Body body, int index, Ekintzak e)
@@ -171,7 +174,16 @@ namespace FeelmwLogistika.Logistika.ExelDB
                 { $"{{{{eki_info_{index}}}}}", e.Informazioa }
             };
 
-            OrdezkatuMarkak(body, mapa);
+            foreach (var text in body.Descendants<WordText>())
+            {
+                foreach (var item in mapa)
+                {
+                    if (text.Text.Contains(item.Key))
+                    {
+                        text.Text = text.Text.Replace(item.Key, item.Value);
+                    }
+                }
+            }
         }
         private static void ReemplazarGarraio(Body body, int index, Garraioak g)
         {
@@ -187,41 +199,15 @@ namespace FeelmwLogistika.Logistika.ExelDB
                 { $"{{{{gar_info_{index}}}}}", g.Informazioa }
             };
 
-            OrdezkatuMarkak(body, mapa);
-        }
-
-        private static void OrdezkatuMarkak(Body body, Dictionary<string, string> mapa)
-        {
-            foreach (Paragraph paragraph in body.Descendants<Paragraph>())
+            foreach (var text in body.Descendants<WordText>())
             {
-                string testua = string.Concat(paragraph.Descendants<WordText>().Select(t => t.Text));
-                if (!mapa.Keys.Any(testua.Contains))
-                {
-                    continue;
-                }
-
                 foreach (var item in mapa)
                 {
-                    testua = testua.Replace(item.Key, item.Value);
+                    if (text.Text.Contains(item.Key))
+                    {
+                        text.Text = text.Text.Replace(item.Key, item.Value);
+                    }
                 }
-
-                ParagrafoTestuaEzarri(paragraph, testua);
-            }
-        }
-
-        private static void ParagrafoTestuaEzarri(Paragraph paragraph, string testua)
-        {
-            List<WordText> zatiak = paragraph.Descendants<WordText>().ToList();
-            if (zatiak.Count == 0)
-            {
-                paragraph.AppendChild(new Run(new WordText(testua)));
-                return;
-            }
-
-            zatiak[0].Text = testua;
-            foreach (WordText zatia in zatiak.Skip(1))
-            {
-                zatia.Text = "";
             }
         }
         private static void EliminarColumnasSobrantes(Table tabla, int objetosUsados)
@@ -239,31 +225,6 @@ namespace FeelmwLogistika.Logistika.ExelDB
                     {
                         cells[colIndex].Remove();
                     }
-                }
-            }
-        }
-
-        private static void EliminarFilasComidaHutsak(Table tabla, List<Ostalak> ostalak)
-        {
-            if (tabla.Parent == null || ostalak.Count == 0)
-            {
-                return;
-            }
-
-            foreach (TableRow row in tabla.Elements<TableRow>().ToList())
-            {
-                string testua = string.Concat(row.Descendants<WordText>().Select(t => t.Text)).ToLowerInvariant();
-                if (testua.Contains("gosaria") && ostalak.All(o => string.IsNullOrWhiteSpace(o.Gosariates)))
-                {
-                    row.Remove();
-                }
-                else if (testua.Contains("bazkaria") && ostalak.All(o => string.IsNullOrWhiteSpace(o.Bazkariates)))
-                {
-                    row.Remove();
-                }
-                else if (testua.Contains("afaria") && ostalak.All(o => string.IsNullOrWhiteSpace(o.Afariates)))
-                {
-                    row.Remove();
                 }
             }
         }

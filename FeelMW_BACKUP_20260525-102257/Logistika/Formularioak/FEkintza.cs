@@ -73,10 +73,12 @@ namespace FeelmwLogistika.Formularioak
                 MessageBox.Show("Ezin izan dira ekintzak kargatu: " + ex.Message);
             }
 
-            foreach (Ekintzak eki in LisEki
-                .Where(e => !string.IsNullOrWhiteSpace(e.EkintzaIzena))
-                .GroupBy(e => e.EkintzaIzena.Trim(), StringComparer.OrdinalIgnoreCase)
-                .Select(g => g.First()))
+            if (LisEki.Count > 0)
+            {
+                LisEki.RemoveAt(0);
+            }
+
+            foreach (Ekintzak eki in LisEki)
             {
                 cbxEkintza.Items.Add(eki.EkintzaIzena);
             }
@@ -180,7 +182,7 @@ namespace FeelmwLogistika.Formularioak
                     txtKontaktua.Text = ekintza.Kontaktua;
                     txtElkartokia.Text = ekintza.Elkartokia;
                     txtEgonlekua.Text = ekintza.Egonlekua;
-                    txtLokali.Text = LokaliBalioa(ekintza.Lokali);
+                    txtLokali.Text = ekintza.Lokali;
 
                     chkAldagela.Checked = ekintza.Aldagela;
                     chkKomuna.Checked = ekintza.Komuna;
@@ -202,12 +204,7 @@ namespace FeelmwLogistika.Formularioak
             chkKomuna.Checked = ekintza.Komuna;
             txtEgonlekua.Text = ekintza.Egonlekua;
             txtInfo.Text = ekintza.Informazioa;
-            txtLokali.Text = LokaliBalioa(ekintza.Lokali);
-        }
-
-        private string LokaliBalioa(string lokali)
-        {
-            return string.IsNullOrWhiteSpace(lokali) ? BalioLehenetsiak.Lokalizatzailea : lokali;
+            txtLokali.Text = ekintza.Lokali;
         }
     }
 }

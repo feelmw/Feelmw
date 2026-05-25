@@ -36,12 +36,6 @@ namespace FeelmwLogistika.Plangintza.ExelDB
 
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             string outputPath = Path.Combine(desktopPath, $"Plangintza - {izena}.docx");
-            string excelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Plangintza - {izena}.xlsx");
-            if (File.Exists(excelPath))
-            {
-                File.Delete(excelPath);
-            }
-
             File.Copy(plantillaPath, outputPath, true);
 
             using WordprocessingDocument doc = WordprocessingDocument.Open(outputPath, true);
@@ -72,9 +66,7 @@ namespace FeelmwLogistika.Plangintza.ExelDB
             Ordezkatu(body, "{{EGUNA_ARRATSALDEA}}", egunak.Select(e => e.Arratsaldea).ToList());
             Ordezkatu(body, "{{EGUNA_GAUA}}", egunak.Select(e => e.Gaua).ToList());
             EgunXehetasunakOrdezkatu(body, egunDokumentuak, emaitza.Abisuak);
-            EliminarFilasConMarkagailuakSobratuak(body);
             GarbituMarkagailuSobratuak(body);
-            EliminarEgituraHutsak(body);
 
             mainPart.Document.Save();
             return emaitza;
@@ -234,18 +226,16 @@ namespace FeelmwLogistika.Plangintza.ExelDB
 
         private static void EgunXehetasunakOrdezkatu(Body body, IReadOnlyList<EgunDokumentua> egunak, List<string> abisuak)
         {
-            List<EgunDokumentua> egunakEdukiDutenak = egunak
-                .Where(e => e.Ekintzak.Count > 0)
+            List<Paragraph> paragraphs = body.Descendants<Paragraph>().ToList();
+            List<int> hasierak = paragraphs
+                .Select((paragraph, index) => new { paragraph, index })
+                .Where(item => ParagrafoTestua(item.paragraph).Contains("{{EGUNA_IZENBURUA}}"))
+                .Select(item => item.index)
                 .ToList();
 
-            EzabatuEgunBlokeHutsak(body, egunak);
-
-            List<Paragraph> paragraphs = body.Descendants<Paragraph>().ToList();
-            List<int> hasierak = EgunBlokeHasierak(paragraphs);
-
-            if (egunakEdukiDutenak.Count > hasierak.Count)
+            if (egunak.Count > hasierak.Count)
             {
-                abisuak.Add($"Txantiloiak {hasierak.Count} egun xehetasun bloke ditu, baina {egunakEdukiDutenak.Count} egun daude. Soberako egunak ez dira dokumentuan sartuko.");
+                abisuak.Add($"Txantiloiak {hasierak.Count} egun xehetasun bloke ditu, baina {egunak.Count} egun daude. Soberako egunak ez dira dokumentuan sartuko.");
             }
 
             for (int i = 0; i < hasierak.Count; i++)
@@ -254,13 +244,15 @@ namespace FeelmwLogistika.Plangintza.ExelDB
                 int amaiera = i + 1 < hasierak.Count ? hasierak[i + 1] : paragraphs.Count;
                 List<Paragraph> blokea = paragraphs.Skip(hasiera).Take(amaiera - hasiera).ToList();
 
-                if (i >= egunakEdukiDutenak.Count)
+                if (i >= egunak.Count)
                 {
-                    EzabatuParagrafoBlokea(body, blokea);
+                    OrdezkatuParagrafoetan(blokea, "{{EGUNA_IZENBURUA}}", Array.Empty<string>());
+                    OrdezkatuParagrafoetan(blokea, "{{EGUNA_ORDUA}}", Array.Empty<string>());
+                    OrdezkatuParagrafoetan(blokea, "{{EGUNA_DESKRIBAPENA}}", Array.Empty<string>());
                     continue;
                 }
 
-                EgunDokumentua eguna = egunakEdukiDutenak[i];
+                EgunDokumentua eguna = egunak[i];
                 int orduLekuak = MarkaKopurua(blokea, "{{EGUNA_ORDUA}}");
                 int deskribapenLekuak = MarkaKopurua(blokea, "{{EGUNA_DESKRIBAPENA}}");
                 int lekuak = Math.Min(orduLekuak, deskribapenLekuak);
@@ -275,62 +267,6 @@ namespace FeelmwLogistika.Plangintza.ExelDB
                 OrdezkatuParagrafoetan(blokea, "{{EGUNA_ORDUA}}", ekintzak.Select(e => e.Ordua).ToList());
                 OrdezkatuParagrafoetan(blokea, "{{EGUNA_DESKRIBAPENA}}", ekintzak.Select(e => e.Deskribapena).ToList());
             }
-        }
-
-        private static List<int> EgunBlokeHasierak(IReadOnlyList<Paragraph> paragraphs)
-        {
-            return paragraphs
-                .Select((paragraph, index) => new { paragraph, index })
-                .Where(item => ParagrafoTestua(item.paragraph).Contains("{{EGUNA_IZENBURUA}}"))
-                .Select(item => item.index)
-                .ToList();
-        }
-
-        private static void EzabatuEgunBlokeHutsak(Body body, IReadOnlyList<EgunDokumentua> egunak)
-        {
-            List<Paragraph> paragraphs = body.Descendants<Paragraph>().ToList();
-            List<int> hasierak = EgunBlokeHasierak(paragraphs);
-
-            for (int i = Math.Min(egunak.Count, hasierak.Count) - 1; i >= 0; i--)
-            {
-                if (egunak[i].Ekintzak.Count > 0)
-                {
-                    continue;
-                }
-
-                int hasiera = hasierak[i];
-                int amaiera = i + 1 < hasierak.Count ? hasierak[i + 1] : paragraphs.Count;
-                EzabatuParagrafoBlokea(body, paragraphs.Skip(hasiera).Take(amaiera - hasiera).ToList());
-            }
-        }
-
-        private static void EzabatuParagrafoBlokea(Body body, IReadOnlyList<Paragraph> blokea)
-        {
-            foreach (OpenXmlElement element in blokea
-                .Select(p => ElementuaEzabatzeko(body, p))
-                .OfType<OpenXmlElement>()
-                .Distinct()
-                .ToList())
-            {
-                element.Remove();
-            }
-        }
-
-        private static OpenXmlElement? ElementuaEzabatzeko(Body body, OpenXmlElement element)
-        {
-            TableRow? row = element.Ancestors<TableRow>().FirstOrDefault();
-            return row ?? GorputzekoElementua(body, element);
-        }
-
-        private static OpenXmlElement? GorputzekoElementua(Body body, OpenXmlElement element)
-        {
-            OpenXmlElement unekoa = element;
-            while (unekoa.Parent != null && unekoa.Parent != body)
-            {
-                unekoa = unekoa.Parent;
-            }
-
-            return unekoa.Parent == body ? unekoa : null;
         }
 
         private static void OrdezkatuParagrafoetan(IReadOnlyList<Paragraph> paragraphs, string marka, IReadOnlyList<string> balioak)
@@ -385,22 +321,14 @@ namespace FeelmwLogistika.Plangintza.ExelDB
                 string url = hotela?.HelbideaUrl ?? "";
                 index++;
 
-                if (string.IsNullOrWhiteSpace(url) || !Uri.TryCreate(url, UriKind.Absolute, out Uri? uri))
+                if (testua.Trim() != marka || string.IsNullOrWhiteSpace(url) || !Uri.TryCreate(url, UriKind.Absolute, out Uri? uri))
                 {
                     ParagrafoTestuaEzarri(paragraph, testua.Replace(marka, izena));
                     continue;
                 }
 
                 HyperlinkRelationship relation = mainPart.AddHyperlinkRelationship(uri, true);
-                string aurretik = testua.Substring(0, testua.IndexOf(marka, StringComparison.Ordinal));
-                string ondoren = testua.Substring(aurretik.Length + marka.Length);
                 paragraph.RemoveAllChildren<Run>();
-                paragraph.RemoveAllChildren<Hyperlink>();
-                if (!string.IsNullOrEmpty(aurretik))
-                {
-                    paragraph.AppendChild(new Run(new WordText(aurretik) { Space = SpaceProcessingModeValues.Preserve }));
-                }
-
                 Run linkRun = new Run(
                     new RunProperties(new RunStyle { Val = "Hyperlink" }),
                     new WordText(izena));
@@ -412,10 +340,6 @@ namespace FeelmwLogistika.Plangintza.ExelDB
                 };
 
                 paragraph.AppendChild(hyperlink);
-                if (!string.IsNullOrEmpty(ondoren))
-                {
-                    paragraph.AppendChild(new Run(new WordText(ondoren) { Space = SpaceProcessingModeValues.Preserve }));
-                }
             }
         }
 
@@ -430,42 +354,6 @@ namespace FeelmwLogistika.Plangintza.ExelDB
                     ParagrafoTestuaEzarri(paragraph, regex.Replace(testua, ""));
                 }
             }
-        }
-
-        private static void EliminarFilasConMarkagailuakSobratuak(Body body)
-        {
-            foreach (TableRow row in body.Descendants<TableRow>().ToList())
-            {
-                if (ParagrafoakTestua(row.Descendants<Paragraph>()).Contains("{{"))
-                {
-                    row.Remove();
-                }
-            }
-        }
-
-        private static void EliminarEgituraHutsak(Body body)
-        {
-            foreach (Table table in body.Descendants<Table>().ToList())
-            {
-                foreach (TableRow row in table.Elements<TableRow>().ToList())
-                {
-                    string testua = ParagrafoakTestua(row.Descendants<Paragraph>());
-                    if (string.IsNullOrWhiteSpace(testua))
-                    {
-                        row.Remove();
-                    }
-                }
-
-                if (!table.Elements<TableRow>().Any())
-                {
-                    table.Remove();
-                }
-            }
-        }
-
-        private static string ParagrafoakTestua(IEnumerable<Paragraph> paragraphs)
-        {
-            return string.Concat(paragraphs.Select(ParagrafoTestua));
         }
 
         private static string ParagrafoTestua(Paragraph paragraph)

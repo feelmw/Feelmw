@@ -118,7 +118,6 @@ namespace FeelmwLogistika
             FMenuNagusia.DokIzena = null;
             FPlangintza.IdEditatuDokumentua = null;
             FPlangintza.DokIzena = null;
-            FPlangintza.HasiHutsikEditatzean = false;
             FMenuNagusia fmn = new FMenuNagusia(panelak);
             FormularioaIreki(fmn);
         }
@@ -150,7 +149,6 @@ namespace FeelmwLogistika
                 FPlangintza.IdEditatuDokumentua = null;
                 FPlangintza.DokIzena = null;
                 FPlangintza.Mota = "";
-                FPlangintza.HasiHutsikEditatzean = false;
                 motaHelburua = "";
             }
 
@@ -232,7 +230,6 @@ namespace FeelmwLogistika
             FPlangintza.IdEditatuDokumentua = null;
             FPlangintza.DokIzena = null;
             FPlangintza.Mota = "";
-            FPlangintza.HasiHutsikEditatzean = false;
             FPlangintza fp = new FPlangintza(panelak);
             FormularioaIreki(fp);
         }
@@ -245,7 +242,6 @@ namespace FeelmwLogistika
 
         private void PlangintzaEditatuIreki()
         {
-            FPlangintza.HasiHutsikEditatzean = true;
             FPlangintza fp = new FPlangintza(panelak);
             FormularioaIreki(fp);
         }
@@ -301,7 +297,6 @@ namespace FeelmwLogistika
             FPlangintza.IdEditatuDokumentua = null;
             FPlangintza.DokIzena = null;
             FPlangintza.Mota = "";
-            FPlangintza.HasiHutsikEditatzean = false;
 
             if (LogistikaDokumentuaDa(sheet.Nombre))
             {

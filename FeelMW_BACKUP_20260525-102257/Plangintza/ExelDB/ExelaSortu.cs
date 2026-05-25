@@ -65,7 +65,6 @@ namespace FeelmwLogistika.Plangintza.ExelDB
             public string Data { get; set; } = "";
             public List<EgunLaburpena> Egunak { get; set; } = new List<EgunLaburpena>();
             public List<EkintzaDatuak> Ekintzak { get; set; } = new List<EkintzaDatuak>();
-            public List<Bidaiak> Bidaiak { get; set; } = new List<Bidaiak>();
         }
 
         public static string Gorde(
@@ -153,20 +152,6 @@ namespace FeelmwLogistika.Plangintza.ExelDB
                 Ostala = CeldaTestua(laburpenaSheet.Cell(1, 2)),
                 EgunKop = Math.Max(1, CeldaEnteroa(laburpenaSheet.Cell(2, 2), 1))
             };
-
-            if (TaulaAnitzaDa(hotelakSheet))
-            {
-                datuak.Bidaiak = BidaiakIrakurri(hotelakSheet, egunakSheet, ekintzakSheet);
-                Bidaiak? lehenBidaia = datuak.Bidaiak.FirstOrDefault();
-                datuak.Hotela = lehenBidaia == null ? null : HotelaDatuakSortu(lehenBidaia);
-                datuak.Ostala = lehenBidaia?.HotelHautatua?.Izena ?? datuak.Ostala;
-                datuak.EgunKop = lehenBidaia?.EgunKop ?? 1;
-                datuak.Egunak = datuak.Bidaiak.SelectMany(b => b.EgunLaburpenak).ToList();
-                datuak.Ekintzak = datuak.Bidaiak.SelectMany(b => b.EkintzaDatuak).ToList();
-                datuak.Data = datuak.Egunak.FirstOrDefault()?.Data ?? "";
-                return datuak;
-            }
-
             datuak.Hotela = HotelaIrakurri(hotelakSheet, datuak.EgunKop);
             datuak.Ostala = datuak.Hotela?.Izena ?? datuak.Ostala;
 
@@ -202,85 +187,6 @@ namespace FeelmwLogistika.Plangintza.ExelDB
             }
 
             return datuak;
-        }
-
-        private static bool TaulaAnitzaDa(IXLWorksheet sheet)
-        {
-            return string.Equals(CeldaTestua(sheet.Cell(1, 1)), "Bidaia zatia", StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static List<Bidaiak> BidaiakIrakurri(IXLWorksheet hotelakSheet, IXLWorksheet egunakSheet, IXLWorksheet ekintzakSheet)
-        {
-            Dictionary<int, Hotelak> hotelak = new Dictionary<int, Hotelak>();
-            Dictionary<int, int> egunKop = new Dictionary<int, int>();
-            Dictionary<int, List<EgunLaburpena>> egunak = new Dictionary<int, List<EgunLaburpena>>();
-            Dictionary<int, List<EkintzaDatuak>> ekintzak = new Dictionary<int, List<EkintzaDatuak>>();
-
-            foreach (var row in hotelakSheet.RowsUsed().Skip(1))
-            {
-                int zatia = CeldaEnteroa(row.Cell(1), hotelak.Count + 1);
-                hotelak[zatia] = new Hotelak(
-                    CeldaTestua(row.Cell(2)),
-                    CeldaTestua(row.Cell(3)),
-                    CeldaTestua(row.Cell(4))
-                );
-                egunKop[zatia] = Math.Max(1, CeldaEnteroa(row.Cell(5), 1));
-            }
-
-            foreach (var row in egunakSheet.RowsUsed().Skip(1))
-            {
-                int zatia = CeldaEnteroa(row.Cell(1), 1);
-                if (!egunak.ContainsKey(zatia))
-                {
-                    egunak[zatia] = new List<EgunLaburpena>();
-                }
-
-                egunak[zatia].Add(new EgunLaburpena(
-                    CeldaEnteroa(row.Cell(3), egunak[zatia].Count + 1),
-                    CeldaTestua(row.Cell(4)),
-                    CeldaTestua(row.Cell(5)),
-                    CeldaTestua(row.Cell(6)),
-                    CeldaTestua(row.Cell(7))
-                ));
-            }
-
-            foreach (var row in ekintzakSheet.RowsUsed().Skip(1))
-            {
-                int zatia = CeldaEnteroa(row.Cell(1), 1);
-                if (!ekintzak.ContainsKey(zatia))
-                {
-                    ekintzak[zatia] = new List<EkintzaDatuak>();
-                }
-
-                ekintzak[zatia].Add(new EkintzaDatuak(
-                    CeldaTestua(row.Cell(3)),
-                    CeldaTestua(row.Cell(4)),
-                    CeldaTestua(row.Cell(5)),
-                    CeldaTestua(row.Cell(6))
-                ));
-            }
-
-            return hotelak
-                .OrderBy(h => h.Key)
-                .Select(h => new Bidaiak(
-                    h.Value,
-                    egunKop.TryGetValue(h.Key, out int kop) ? kop : Math.Max(1, egunak.GetValueOrDefault(h.Key)?.Count ?? 1),
-                    egunak.GetValueOrDefault(h.Key) ?? new List<EgunLaburpena>(),
-                    ekintzak.GetValueOrDefault(h.Key) ?? new List<EkintzaDatuak>()
-                ))
-                .ToList();
-        }
-
-        private static HotelDatuak HotelaDatuakSortu(Bidaiak bidaia)
-        {
-            Hotelak? hotela = bidaia.HotelHautatua;
-            return new HotelDatuak(
-                hotela?.Hiria ?? "",
-                hotela?.Izena ?? "",
-                hotela?.HelbideaUrl ?? "",
-                bidaia.EgunKop,
-                bidaia.EgunLaburpenak.FirstOrDefault()?.Data ?? ""
-            );
         }
 
         private static PlangintzaDatuak EgituraZaharraIrakurri(IXLWorksheet sheet)

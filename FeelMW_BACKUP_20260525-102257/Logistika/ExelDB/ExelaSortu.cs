@@ -36,28 +36,6 @@ namespace FeelmwLogistika.Logistika.ExelDB
                 var sheet = workbook.Worksheet("Ostalak");
 
                 int row = 1;
-                sheet.Cell(row, 1).Value = "Ostala";
-                sheet.Cell(row, 2).Value = "Bonoa";
-                sheet.Cell(row, 3).Value = "Helbidea";
-                sheet.Cell(row, 4).Value = "Lokalizatzailea";
-                sheet.Cell(row, 5).Value = "Gauak";
-                sheet.Cell(row, 6).Value = "Datak";
-                sheet.Cell(row, 7).Value = "Gelak";
-                sheet.Cell(row, 8).Value = "Checkin";
-                sheet.Cell(row, 9).Value = "Checkout";
-                sheet.Cell(row, 10).Value = "Dokumentazioa";
-                sheet.Cell(row, 11).Value = "Harrera";
-                sheet.Cell(row, 12).Value = "Gosaria";
-                sheet.Cell(row, 13).Value = "Bazkaria";
-                sheet.Cell(row, 14).Value = "Afaria";
-                sheet.Cell(row, 15).Value = "Toailak";
-                sheet.Cell(row, 16).Value = "Izarak";
-                sheet.Cell(row, 17).Value = "Fidantza";
-                sheet.Cell(row, 18).Value = "Fidantza kuota";
-                sheet.Cell(row, 19).Value = "Luggage";
-                sheet.Cell(row, 20).Value = "Luggage kuota";
-                sheet.Cell(row, 21).Value = "Instalazioak";
-                row++;
 
                 foreach (var o in lista)
                 {

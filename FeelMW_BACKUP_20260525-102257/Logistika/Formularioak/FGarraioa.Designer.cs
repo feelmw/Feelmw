@@ -40,8 +40,7 @@
             lblEginbeharrak = new Label();
             lblGarraioa = new Label();
             panel3 = new Panel();
-            datAmaiera = new DateTimePicker();
-            datHasiera = new DateTimePicker();
+            dtpEguna = new DateTimePicker();
             btnIrten = new Button();
             lblLokali = new Label();
             txtLokali = new TextBox();
@@ -191,8 +190,7 @@
             // 
             panel3.BackColor = Color.White;
             panel3.BorderStyle = BorderStyle.FixedSingle;
-            panel3.Controls.Add(datAmaiera);
-            panel3.Controls.Add(datHasiera);
+            panel3.Controls.Add(dtpEguna);
             panel3.Controls.Add(btnIrten);
             panel3.Controls.Add(lblLokali);
             panel3.Controls.Add(txtLokali);
@@ -209,21 +207,13 @@
             panel3.Size = new Size(534, 688);
             panel3.TabIndex = 1;
             // 
-            // datAmaiera
+            // dtpEguna
             // 
-            datAmaiera.Format = DateTimePickerFormat.Short;
-            datAmaiera.Location = new Point(218, 42);
-            datAmaiera.Name = "datAmaiera";
-            datAmaiera.Size = new Size(124, 30);
-            datAmaiera.TabIndex = 2;
-            // 
-            // datHasiera
-            // 
-            datHasiera.Format = DateTimePickerFormat.Short;
-            datHasiera.Location = new Point(28, 42);
-            datHasiera.Name = "datHasiera";
-            datHasiera.Size = new Size(129, 30);
-            datHasiera.TabIndex = 1;
+            dtpEguna.Format = DateTimePickerFormat.Short;
+            dtpEguna.Location = new Point(28, 42);
+            dtpEguna.Name = "dtpEguna";
+            dtpEguna.Size = new Size(145, 30);
+            dtpEguna.TabIndex = 1;
             // 
             // btnIrten
             // 
@@ -386,7 +376,6 @@
         private Button btnGorde;
         private Label lblIzenburua;
         private TextBox txtGarraioa;
-        private DateTimePicker datAmaiera;
-        private DateTimePicker datHasiera;
+        private DateTimePicker dtpEguna;
     }
 }

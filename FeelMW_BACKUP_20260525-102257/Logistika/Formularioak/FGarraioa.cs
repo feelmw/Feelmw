@@ -57,9 +57,9 @@ namespace FeelmwLogistika.Formularioak
         {
             Gar = new Garraioak(
                 txtGarraioa.Text,
-                DatakBalioa(),
+                dtpEguna.Value.ToShortDateString(),
                 txtOrdutegia.Text,
-                LokaliBalioa(),
+                txtLokali.Text,
                 txtkontaktua.Text,
                 txtElkartokia.Text,
                 txtEginbeharrak.Text,
@@ -72,11 +72,12 @@ namespace FeelmwLogistika.Formularioak
         private void GarraioaKargatu(Garraioak garraioa)
         {
             txtGarraioa.Text = garraioa.GarraioaIzena;
-            DatakKargatu(garraioa.Eguna);
+            if (DateTime.TryParse(garraioa.Eguna, out DateTime eguna))
+            {
+                dtpEguna.Value = eguna;
+            }
             txtOrdutegia.Text = garraioa.Ordutegia;
-            txtLokali.Text = string.IsNullOrWhiteSpace(garraioa.Lokalizatzailea)
-                ? FeelmwLogistika.BalioLehenetsiak.Lokalizatzailea
-                : garraioa.Lokalizatzailea;
+            txtLokali.Text = garraioa.Lokalizatzailea;
             txtkontaktua.Text = garraioa.Kontaktua;
             txtElkartokia.Text = garraioa.Elkargunea;
             txtEginbeharrak.Text = garraioa.Eginbeharrak;
@@ -87,48 +88,13 @@ namespace FeelmwLogistika.Formularioak
         {
             Gar = null;
             txtGarraioa.Clear();
-            datHasiera.Value = DateTime.Today;
-            datAmaiera.Value = DateTime.Today;
+            dtpEguna.Value = DateTime.Today;
             txtOrdutegia.Clear();
-            txtLokali.Text = FeelmwLogistika.BalioLehenetsiak.Lokalizatzailea;
+            txtLokali.Clear();
             txtkontaktua.Clear();
             txtElkartokia.Clear();
             txtEginbeharrak.Clear();
             txtInfo.Clear();
-        }
-
-        private string LokaliBalioa()
-        {
-            return string.IsNullOrWhiteSpace(txtLokali.Text) ? FeelmwLogistika.BalioLehenetsiak.Lokalizatzailea : txtLokali.Text;
-        }
-
-        private string DatakBalioa()
-        {
-            return datHasiera.Value.ToShortDateString() + " - " + datAmaiera.Value.ToShortDateString();
-        }
-
-        private void DatakKargatu(string datak)
-        {
-            if (string.IsNullOrWhiteSpace(datak))
-            {
-                return;
-            }
-
-            string[] zatiak = datak.Split(" - ");
-            if (zatiak.Length > 0 && DateTime.TryParse(zatiak[0], out DateTime hasiera))
-            {
-                datHasiera.Value = hasiera;
-            }
-
-            if (zatiak.Length > 1 && DateTime.TryParse(zatiak[1], out DateTime amaiera))
-            {
-                datAmaiera.Value = amaiera;
-            }
-            else if (DateTime.TryParse(datak, out DateTime eguna))
-            {
-                datHasiera.Value = eguna;
-                datAmaiera.Value = eguna;
-            }
         }
 
     }

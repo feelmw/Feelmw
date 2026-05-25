@@ -101,6 +101,12 @@ namespace FeelmwLogistika.Plangintza
         {
             KargaEmaitza emaitza = new KargaEmaitza();
 
+            if (hotelak == null || !hotelak.Any())
+            {
+                emaitza.Abisuak.Add("Plangintzako hotel zerrenda hutsik dago; ezin da Logistikako ostatua automatikoki lotu.");
+                return emaitza;
+            }
+
             foreach (Ostalak ostala in logistikaOstalak)
             {
                 Bidaiak? bidaia = SortuEdoEguneratuBidaia(ostala, hotelak, out string? abisua);
@@ -127,7 +133,12 @@ namespace FeelmwLogistika.Plangintza
                 return null;
             }
 
-            Hotelak hotela = HotelaPlangintzarakoSortu(ostala, BuscarHotelPorNombre(hotelak, ostala.OstalaIzena));
+            Hotelak? hotela = BuscarHotelPorNombre(hotelak, ostala.OstalaIzena);
+            if (hotela == null)
+            {
+                abisua = HotelLoturaAbisua(hotelak, ostala.OstalaIzena);
+                return null;
+            }
 
             Bidaiak bidaia = BidaiaSortu(ostala, hotela);
             BidaiaGorde(bidaia);
@@ -173,12 +184,12 @@ namespace FeelmwLogistika.Plangintza
 
         private static Bidaiak BidaiaSortu(Ostalak ostala, Hotelak hotela)
         {
-            int gauak = Math.Max(0, ostala.Gauak);
-            int egunKop = Math.Max(1, gauak + 1);
+            int gauak = Math.Max(1, ostala.Gauak);
+            int egunKop = Math.Max(2, gauak + 1);
             List<ExelaSortu.EgunLaburpena> egunak = new List<ExelaSortu.EgunLaburpena>();
             for (int i = 1; i <= egunKop; i++)
             {
-                egunak.Add(new ExelaSortu.EgunLaburpena(i, $"Eguna{i}", "", "", ""));
+                egunak.Add(new ExelaSortu.EgunLaburpena(i, "", "", "", ""));
             }
 
             return new Bidaiak(
@@ -187,18 +198,6 @@ namespace FeelmwLogistika.Plangintza
                 egunak,
                 new List<ExelaSortu.EkintzaDatuak>()
             );
-        }
-
-        private static Hotelak HotelaPlangintzarakoSortu(Ostalak ostala, Hotelak? plangintzaHotela)
-        {
-            string izena = string.IsNullOrWhiteSpace(plangintzaHotela?.Izena)
-                ? ostala.OstalaIzena
-                : plangintzaHotela.Izena;
-            string helbideaUrl = string.IsNullOrWhiteSpace(plangintzaHotela?.HelbideaUrl)
-                ? ostala.Helbidea
-                : plangintzaHotela.HelbideaUrl;
-
-            return new Hotelak(plangintzaHotela?.Hiria ?? "", izena, helbideaUrl);
         }
 
         private static bool BidaiaOsatua(Bidaiak bidaia, out string mezua)

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FeelmwLogistika;
 
 namespace FeelmwLogistika.Logistika.DatuModeloak
 {
@@ -23,7 +22,7 @@ namespace FeelmwLogistika.Logistika.DatuModeloak
         public string GarraioaIzena { get => garraioaIzena; set => garraioaIzena = value; }
         public string Eguna { get => eguna; set => eguna = value; }
         public string Ordutegia { get => ordutegia; set => ordutegia = value; }
-        public string Lokalizatzailea { get => lokalizatzailea; set => lokalizatzailea = string.IsNullOrWhiteSpace(value) ? BalioLehenetsiak.Lokalizatzailea : value; }
+        public string Lokalizatzailea { get => lokalizatzailea; set => lokalizatzailea = value; }
         public string Kontaktua { get => kontaktua; set => kontaktua = value; }
         public string Elkargunea { get => elkargunea; set => elkargunea = value; }
         public string Eginbeharrak { get => eginbeharrak; set => eginbeharrak = value; }
@@ -35,7 +34,7 @@ namespace FeelmwLogistika.Logistika.DatuModeloak
             garraioaIzena = g;
             eguna = e;
             ordutegia = o;
-            Lokalizatzailea = l;
+            lokalizatzailea = l;
             kontaktua = k;
             elkargunea = el;
             eginbeharrak = eg;

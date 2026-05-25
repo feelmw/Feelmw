@@ -19,7 +19,6 @@ namespace FeelmwLogistika.Plangintza.Formularioak
         public static string? IdEditatuDokumentua;
         public static string? DokIzena;
         public static string Mota = "";
-        public static bool HasiHutsikEditatzean = false;
         private Panel panelak;
         private List<Hotelak> LisHot = new List<Hotelak>();
         private Hotelak? hotelaHautatua;
@@ -37,7 +36,6 @@ namespace FeelmwLogistika.Plangintza.Formularioak
         private readonly List<ExelDB.ExelaSortu.EkintzaDatuak> gordetakoEkintzak = new List<ExelDB.ExelaSortu.EkintzaDatuak>();
         private readonly List<Bidaiak> gordetakoBidaiak = new List<Bidaiak>();
         private Bidaiak? bidaiaEditatzen;
-        private string ultimoDiaSeleccionado = "";
         public FPlangintza(Panel panelak)
         {
             InitializeComponent();
@@ -61,8 +59,6 @@ namespace FeelmwLogistika.Plangintza.Formularioak
                 EkintzenEgunakEguneratu();
             };
             txtData.TextChanged += (s, e) => EkintzenEgunakEguneratu();
-            panel2.Resize += (s, e) => DiseinuaEgokitu();
-            DiseinuaEgokitu();
         }
 
         private void btnIrten_Click(object sender, EventArgs e)
@@ -214,11 +210,6 @@ namespace FeelmwLogistika.Plangintza.Formularioak
             if (!string.IsNullOrWhiteSpace(IdEditatuDokumentua))
             {
                 PlangintzaDatuakKargatu();
-                if (HasiHutsikEditatzean)
-                {
-                    FormularioaGarbitu();
-                    HasiHutsikEditatzean = false;
-                }
             }
             else
             {
@@ -247,14 +238,10 @@ namespace FeelmwLogistika.Plangintza.Formularioak
 
             ExelDB.ExelaSortu.PlangintzaDatuak datuak = ExelDB.ExelaSortu.Irakurri(IdEditatuDokumentua);
 
-            gordetakoHotelak.Clear();
-            gordetakoEgunak.Clear();
-            gordetakoEkintzak.Clear();
-            gordetakoBidaiak.Clear();
-
             cbxOstala.Text = datuak.Ostala;
             if (datuak.Hotela != null)
             {
+                gordetakoHotelak.Clear();
                 gordetakoHotelak.Add(datuak.Hotela);
             }
             nudEgunKop.Value = Math.Min(Math.Max(datuak.EgunKop, (int)nudEgunKop.Minimum), (int)nudEgunKop.Maximum);
@@ -262,25 +249,11 @@ namespace FeelmwLogistika.Plangintza.Formularioak
             EgunLaburpenakKargatu(datuak.Egunak);
             EkintzakKargatu(datuak.Ekintzak);
 
-            if (datuak.Bidaiak.Count > 0)
-            {
-                gordetakoHotelak.Clear();
-                gordetakoBidaiak.AddRange(datuak.Bidaiak);
-                hotelaHautatua = datuak.Bidaiak.FirstOrDefault()?.HotelHautatua;
-                foreach (Bidaiak bidaia in datuak.Bidaiak)
-                {
-                    gordetakoHotelak.Add(HotelDatuakSortu(bidaia));
-                    gordetakoEgunak.AddRange(bidaia.EgunLaburpenak);
-                    gordetakoEkintzak.AddRange(bidaia.EkintzaDatuak);
-                }
-            }
-            else if (datuak.Hotela != null)
+            if (datuak.Hotela != null)
             {
                 Hotelak hotela = new Hotelak(datuak.Hotela.Hiria, datuak.Hotela.Izena, datuak.Hotela.HelbideaUrl);
-                hotelaHautatua = hotela;
+                gordetakoBidaiak.Clear();
                 gordetakoBidaiak.Add(new Bidaiak(hotela, datuak.EgunKop, datuak.Egunak, datuak.Ekintzak));
-                gordetakoEgunak.AddRange(datuak.Egunak);
-                gordetakoEkintzak.AddRange(datuak.Ekintzak);
             }
         }
 
@@ -396,17 +369,16 @@ namespace FeelmwLogistika.Plangintza.Formularioak
             txtDeskribapena.Visible = false;
 
             lblEkintza.Text = "Ekintzak";
-            lblEkintza.Location = new Point(690, 25);
+            lblEkintza.Location = new Point(45, 430);
 
             tlpEkintzak = new TableLayoutPanel
             {
-                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
                 AutoScroll = true,
                 BackColor = Color.Transparent,
                 ColumnCount = 5,
-                Location = new Point(690, 58),
+                Location = new Point(45, 462),
                 Name = "tlpEkintzak",
-                Size = new Size(680, 500),
+                Size = new Size(820, 150),
                 TabIndex = 31
             };
             tlpEkintzak.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 135F));
@@ -417,11 +389,10 @@ namespace FeelmwLogistika.Plangintza.Formularioak
 
             btnEkintzaGehitu = new Button
             {
-                Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 BackColor = AppEstiloa.Urdina,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
-                Location = new Point(690, 568),
+                Location = new Point(884, 462),
                 Name = "btnEkintzaGehitu",
                 Size = new Size(118, 36),
                 Text = "+ Ekintza",
@@ -433,11 +404,10 @@ namespace FeelmwLogistika.Plangintza.Formularioak
 
             btnMotaBerria = new Button
             {
-                Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 BackColor = AppEstiloa.Berdea,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
-                Location = new Point(818, 568),
+                Location = new Point(884, 505),
                 Name = "btnMotaBerria",
                 Size = new Size(118, 36),
                 Text = "+ Mota",
@@ -452,41 +422,6 @@ namespace FeelmwLogistika.Plangintza.Formularioak
             panel2.Controls.Add(btnMotaBerria);
             EkintzenTaulaMarraztu();
             EkintzaLerroaGehitu();
-            DiseinuaEgokitu();
-        }
-
-        private void DiseinuaEgokitu()
-        {
-            int ezkerra = 45;
-            int ezkerZabalera = Math.Min(610, Math.Max(360, panel2.ClientSize.Width - 860));
-            int tartea = 45;
-            int eskuinX = Math.Max(ezkerra + ezkerZabalera + tartea, panel2.ClientSize.Width - 760);
-            int eskuinZabalera = Math.Max(520, panel2.ClientSize.Width - eskuinX - 45);
-
-            cbxOstala.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-            cbxOstala.Location = new Point(ezkerra, cbxOstala.Location.Y);
-            cbxOstala.Width = ezkerZabalera;
-
-            nudEgunKop.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-            nudEgunKop.Location = new Point(ezkerra, nudEgunKop.Location.Y);
-            nudEgunKop.Width = ezkerZabalera;
-
-            txtData.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-            txtData.Location = new Point(ezkerra, txtData.Location.Y);
-            txtData.Width = ezkerZabalera;
-
-            tlpEgunLaburpenak.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-            tlpEgunLaburpenak.Location = new Point(ezkerra, tlpEgunLaburpenak.Location.Y);
-            tlpEgunLaburpenak.Width = Math.Min(720, Math.Max(ezkerZabalera, panel2.ClientSize.Width - eskuinZabalera - tartea - 90));
-
-            lblEkintza.Location = new Point(eskuinX, 35);
-            tlpEkintzak.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            tlpEkintzak.Location = new Point(eskuinX, 70);
-            tlpEkintzak.Size = new Size(eskuinZabalera, Math.Max(360, panel2.ClientSize.Height - 330));
-
-            int botoiY = tlpEkintzak.Bottom + 12;
-            btnEkintzaGehitu.Location = new Point(Math.Max(eskuinX, eskuinX + eskuinZabalera - 246), botoiY);
-            btnMotaBerria.Location = new Point(btnEkintzaGehitu.Right + 10, botoiY);
         }
 
         private void MotaBerriaGehitu()
@@ -637,7 +572,7 @@ namespace FeelmwLogistika.Plangintza.Formularioak
             {
                 EgunekoLaburpenaKontrolak laburpena = egunekoLaburpenak[i];
                 string data = string.IsNullOrWhiteSpace(laburpena.Data.Text)
-                    ? (i < egunak.Count ? egunak[i] : $"Eguna{i + 1}")
+                    ? (i < egunak.Count ? egunak[i] : $"{i + 1}. eguna")
                     : laburpena.Data.Text;
 
                 ExelDB.ExelaSortu.EgunLaburpena eguna = new ExelDB.ExelaSortu.EgunLaburpena(
@@ -707,7 +642,6 @@ namespace FeelmwLogistika.Plangintza.Formularioak
             cbxOstala.Text = "";
             hotelaHautatua = null;
             bidaiaEditatzen = null;
-            ultimoDiaSeleccionado = "";
             nudEgunKop.Value = 1;
             txtData.Clear();
 
@@ -809,7 +743,6 @@ namespace FeelmwLogistika.Plangintza.Formularioak
             );
 
             ekintza.Mota.SelectedValueChanged += (s, e) => EkintzaDeskribapenaBete(ekintza);
-            ekintza.Eguna.SelectedValueChanged += (s, e) => AzkenEgunaGorde(ekintza.Eguna.Text);
             ekintza.Ezabatu.Click += (s, e) => EkintzaLerroaEzabatu(ekintza);
             ekintzaKontrolak.Add(ekintza);
             EkintzenTaulaMarraztu();
@@ -826,10 +759,7 @@ namespace FeelmwLogistika.Plangintza.Formularioak
             combo.Items.AddRange(EgunAukerak().Cast<object>().ToArray());
             if (combo.Items.Count > 0)
             {
-                int index = string.IsNullOrWhiteSpace(ultimoDiaSeleccionado)
-                    ? -1
-                    : combo.Items.IndexOf(ultimoDiaSeleccionado);
-                combo.SelectedIndex = index >= 0 ? index : 0;
+                combo.SelectedIndex = 0;
             }
             return combo;
         }
@@ -887,7 +817,6 @@ namespace FeelmwLogistika.Plangintza.Formularioak
             if (ekintzaKontrolak.Count == 1)
             {
                 ekintza.Eguna.SelectedIndex = ekintza.Eguna.Items.Count > 0 ? 0 : -1;
-                AzkenEgunaGorde(ekintza.Eguna.Text);
                 ekintza.Ordua.Value = DateTime.Now;
                 ekintza.Mota.Text = "";
                 ekintza.Deskribapena.Text = "";
@@ -929,15 +858,10 @@ namespace FeelmwLogistika.Plangintza.Formularioak
                 if (aukerak.Contains(aurrekoa))
                 {
                     ekintza.Eguna.Text = aurrekoa;
-                    AzkenEgunaGorde(aurrekoa);
                 }
                 else if (ekintza.Eguna.Items.Count > 0)
                 {
-                    int index = string.IsNullOrWhiteSpace(ultimoDiaSeleccionado)
-                        ? -1
-                        : ekintza.Eguna.Items.IndexOf(ultimoDiaSeleccionado);
-                    ekintza.Eguna.SelectedIndex = index >= 0 ? index : 0;
-                    AzkenEgunaGorde(ekintza.Eguna.Text);
+                    ekintza.Eguna.SelectedIndex = 0;
                 }
             }
         }
@@ -959,7 +883,7 @@ namespace FeelmwLogistika.Plangintza.Formularioak
             {
                 for (int i = aukerak.Count + 1; i <= egunKop; i++)
                 {
-                    aukerak.Add($"Eguna{i}");
+                    aukerak.Add($"{i}. eguna");
                 }
 
                 return aukerak.Take(egunKop).ToList();
@@ -976,7 +900,7 @@ namespace FeelmwLogistika.Plangintza.Formularioak
             {
                 for (int i = 1; i <= egunKop; i++)
                 {
-                    aukerak.Add($"Eguna{i}");
+                    aukerak.Add($"{i}. eguna");
                 }
             }
 
@@ -1092,10 +1016,8 @@ namespace FeelmwLogistika.Plangintza.Formularioak
                 );
 
                 ekintza.Mota.SelectedValueChanged += (s, e) => EkintzaDeskribapenaBete(ekintza);
-                ekintza.Eguna.SelectedValueChanged += (s, e) => AzkenEgunaGorde(ekintza.Eguna.Text);
                 ekintza.Ezabatu.Click += (s, e) => EkintzaLerroaEzabatu(ekintza);
                 ekintza.Eguna.Text = ekintzaDatuak.Eguna;
-                AzkenEgunaGorde(ekintza.Eguna.Text);
                 if (DateTime.TryParse(ekintzaDatuak.Ordua, out DateTime ordua))
                 {
                     ekintza.Ordua.Value = ordua;
@@ -1112,14 +1034,6 @@ namespace FeelmwLogistika.Plangintza.Formularioak
             }
 
             EkintzenTaulaMarraztu();
-        }
-
-        private void AzkenEgunaGorde(string eguna)
-        {
-            if (!string.IsNullOrWhiteSpace(eguna))
-            {
-                ultimoDiaSeleccionado = eguna;
-            }
         }
 
         private class EgunekoLaburpenaKontrolak
