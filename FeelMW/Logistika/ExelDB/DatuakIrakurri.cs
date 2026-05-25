@@ -1,6 +1,7 @@
 ﻿using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 using ClosedXML.Excel;
+using FeelmwLogistika;
 using FeelmwLogistika.Logistika.DatuModeloak;
 
 namespace FeelmwLogistika.Logistika.ExelDB
@@ -38,7 +39,7 @@ namespace FeelmwLogistika.Logistika.ExelDB
             List<Ostalak> LisOst = new List<Ostalak>();
             Ostalak osta;
 
-            string range = "Ostalak!A:L";
+            string range = "Ostalak!A:P";
             Baimenak.Autentikazioa();
 
             var request = Baimenak.service.Spreadsheets.Values.Get(DatuBaseID, range);
@@ -54,20 +55,46 @@ namespace FeelmwLogistika.Logistika.ExelDB
                     {
                         continue; // Salta filas vacías
                     }
-                    string ostala = row.Count > 0 ? row[0].ToString() ?? "" : "";
-                    string bonoa = row.Count > 1 ? row[1].ToString() ?? "" : "";
-                    string helbidea = row.Count > 2 ? row[2].ToString() ?? "" : "";
-                    string checin = row.Count > 3 ? row[3].ToString() ?? "" : "";
-                    string checkout = row.Count > 4 ? row[4].ToString() ?? "" : "";
-                    string doku = row.Count > 5 ? row[5].ToString() ?? "" : "";
-                    string luga = row.Count > 6 ? row[6].ToString() ?? "" : "";
-                    string lugapre = row.Count > 7 ? row[7].ToString() ?? "" : "";
-                    string harreta = row.Count > 8 ? row[8].ToString() ?? "" : "";
-                    string toailak = row.Count > 9 ? row[9].ToString() ?? "" : "";
-                    string izarak = row.Count > 10 ? row[10].ToString() ?? "" : "";
-                    string instalazioak = row.Count > 11 ? row[11].ToString() ?? "" : "";
+                    string ostala = RowBalioa(row, 0);
+                    string bonoa = RowBalioa(row, 1);
+                    string helbidea = RowBalioa(row, 2);
+                    string checin = RowBalioa(row, 3);
+                    string checkout = RowBalioa(row, 4);
+                    string doku = RowBalioa(row, 5);
+                    string luga = RowBalioa(row, 6);
+                    string lugapre = RowBalioa(row, 7);
+                    string harreta = RowBalioa(row, 8);
+                    string toailak = RowBalioa(row, 9);
+                    string izarak = RowBalioa(row, 10);
+                    string instalazioak = RowBalioa(row, 11);
+                    string gosaria = RowBalioa(row, 12);
+                    string bazkaria = RowBalioa(row, 13);
+                    string afaria = RowBalioa(row, 14);
+                    string fidantza = RowBalioa(row, 15);
 
-                    osta = new Ostalak(ostala, bonoa, helbidea, checin, checkout, doku, harreta, Parseatu(toailak), Parseatu(izarak), Parseatu(luga), lugapre, instalazioak);
+                    osta = new Ostalak(
+                        ostala,
+                        bonoa,
+                        helbidea,
+                        BalioLehenetsiak.Lokalizatzailea,
+                        BalioLehenetsiak.Gauak,
+                        "",
+                        "",
+                        checin,
+                        checkout,
+                        doku,
+                        harreta,
+                        gosaria,
+                        bazkaria,
+                        afaria,
+                        Parseatu(toailak),
+                        Parseatu(izarak),
+                        Parseatu(fidantza),
+                        "",
+                        Parseatu(luga),
+                        lugapre,
+                        instalazioak
+                    );
                     LisOst.Add(osta);
                 }
             }
@@ -81,7 +108,7 @@ namespace FeelmwLogistika.Logistika.ExelDB
 
         public static void OstalaGehitu(Ostalak ost)
         {
-            string range = "Ostalak!A:L";
+            string range = "Ostalak!A:P";
 
             Baimenak.Autentikazioa();
 
@@ -100,7 +127,11 @@ namespace FeelmwLogistika.Logistika.ExelDB
                 ost.Harrera,
                 BoolToBaiEz(ost.Toailak),
                 BoolToBaiEz(ost.Izarak),
-                ost.Instalazioak
+                ost.Instalazioak,
+                ost.Gosariates,
+                ost.Bazkariates,
+                ost.Afariates,
+                BoolToBaiEz(ost.Fidantza)
             };
 
             valueRange.Values = new List<IList<object>> { objectList };
@@ -188,6 +219,36 @@ namespace FeelmwLogistika.Logistika.ExelDB
             appendRequest.Execute();
         }
 
+        private static string RowBalioa(IList<object> row, int index)
+        {
+            return row.Count > index ? row[index].ToString() ?? "" : "";
+        }
+
+        private static string Gelaxka(IXLRangeRow row, int zutabea)
+        {
+            return row.Cell(zutabea).GetValue<string>() ?? "";
+        }
+
+        private static bool OstalaFormatuBerriaDa(IXLRangeRow row)
+        {
+            if (int.TryParse(Gelaxka(row, 5), out _)
+                || Gelaxka(row, 6).Contains(" - ")
+                || string.Equals(Gelaxka(row, 4), BalioLehenetsiak.Lokalizatzailea, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            for (int zutabea = 17; zutabea <= 21; zutabea++)
+            {
+                if (!string.IsNullOrWhiteSpace(Gelaxka(row, zutabea)))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public static string BoolToBaiEz(bool balioa)
         {
             return balioa ? "Bai" : "Ez";
@@ -222,37 +283,41 @@ namespace FeelmwLogistika.Logistika.ExelDB
             // =========================
             // 📌 OSTALAK
             // =========================
-            string ruta = FMenuNagusia.IdEditatuDokumentua;
+            string ruta = FMenuNagusia.IdEditatuDokumentua ?? "";
 
             if (File.Exists(ruta))
             {
                 using (var workbook = new XLWorkbook(ruta))
                 {
-                    if (workbook.Worksheets.TryGetWorksheet("Ostalak", out IXLWorksheet hoja))
+                    if (workbook.Worksheets.TryGetWorksheet("Ostalak", out var hoja))
                     {
                         var rango = hoja.RangeUsed();
                         if (rango != null)
                         {
                             foreach (var row in rango.Rows())
                             {
-                                string ostala = row.Cell(1).GetValue<string>();
-                                string bonoa = row.Cell(2).GetValue<string>();
-                                string helbidea = row.Cell(3).GetValue<string>();
-                                string lokali = row.Cell(4).GetValue<string>();
-                                string gauak = row.Cell(5).GetValue<string>();
-                                string data = row.Cell(6).GetValue<string>();
-                                string gelak = row.Cell(7).GetValue<string>();
-                                string checin = row.Cell(8).GetValue<string>();
-                                string checkout = row.Cell(9).GetValue<string>();
-                                string doku = row.Cell(10).GetValue<string>();
-                                string harreta = row.Cell(11).GetValue<string>();
-                                string gosaria = row.Cell(12).GetValue<string>();
-                                string bazkaria = row.Cell(13).GetValue<string>();
-                                string afaria = row.Cell(14).GetValue<string>();
-                                bool esKlasikoa = string.IsNullOrWhiteSpace(lokali)
-                                    && string.IsNullOrWhiteSpace(gauak)
-                                    && string.IsNullOrWhiteSpace(data)
-                                    && string.IsNullOrWhiteSpace(gelak);
+                                bool formatuBerria = OstalaFormatuBerriaDa(row);
+                                string ostala = Gelaxka(row, 1);
+                                string bonoa = Gelaxka(row, 2);
+                                string helbidea = Gelaxka(row, 3);
+                                string lokali = formatuBerria ? Gelaxka(row, 4) : BalioLehenetsiak.Lokalizatzailea;
+                                string gauak = formatuBerria ? Gelaxka(row, 5) : BalioLehenetsiak.Gauak.ToString();
+                                string data = formatuBerria ? Gelaxka(row, 6) : "";
+                                string gelak = formatuBerria ? Gelaxka(row, 7) : "";
+                                string checin = formatuBerria ? Gelaxka(row, 8) : Gelaxka(row, 4);
+                                string checkout = formatuBerria ? Gelaxka(row, 9) : Gelaxka(row, 5);
+                                string doku = formatuBerria ? Gelaxka(row, 10) : Gelaxka(row, 6);
+                                string harreta = formatuBerria ? Gelaxka(row, 11) : Gelaxka(row, 9);
+                                string gosaria = formatuBerria ? Gelaxka(row, 12) : Gelaxka(row, 13);
+                                string bazkaria = formatuBerria ? Gelaxka(row, 13) : Gelaxka(row, 14);
+                                string afaria = formatuBerria ? Gelaxka(row, 14) : Gelaxka(row, 15);
+                                string toailak = formatuBerria ? Gelaxka(row, 15) : Gelaxka(row, 10);
+                                string izarak = formatuBerria ? Gelaxka(row, 16) : Gelaxka(row, 11);
+                                string fidantza = formatuBerria ? Gelaxka(row, 17) : Gelaxka(row, 16);
+                                string fidantzaKuota = formatuBerria ? Gelaxka(row, 18) : "";
+                                string luggage = formatuBerria ? Gelaxka(row, 19) : Gelaxka(row, 7);
+                                string luggageKuota = formatuBerria ? Gelaxka(row, 20) : Gelaxka(row, 8);
+                                string instalazioak = formatuBerria ? Gelaxka(row, 21) : Gelaxka(row, 12);
 
                                 Ost = new Ostalak(
                                    ostala,
@@ -269,14 +334,13 @@ namespace FeelmwLogistika.Logistika.ExelDB
                                    gosaria,
                                    bazkaria,
                                    afaria,
-                                   Parseatu(row.Cell(15).GetValue<string>()),
-                                   Parseatu(row.Cell(16).GetValue<string>()),
-                                   Parseatu(row.Cell(17).GetValue<string>()),
-                                   row.Cell(18).GetValue<string>(),
-                                   Parseatu(row.Cell(19).GetValue<string>()),
-                                   row.Cell(20).GetValue<string>(),
-                                   row.Cell(21).GetValue<string>(),
-                                   esKlasikoa
+                                   Parseatu(toailak),
+                                   Parseatu(izarak),
+                                   Parseatu(fidantza),
+                                   fidantzaKuota,
+                                   Parseatu(luggage),
+                                   luggageKuota,
+                                   instalazioak
                                );
 
                                 LisOst.Add(Ost);
@@ -293,7 +357,7 @@ namespace FeelmwLogistika.Logistika.ExelDB
             {
                 using (var workbook = new XLWorkbook(ruta))
                 {
-                    if (workbook.Worksheets.TryGetWorksheet("Ekintzak", out IXLWorksheet hoja))
+                    if (workbook.Worksheets.TryGetWorksheet("Ekintzak", out var hoja))
                     {
                         var rango = hoja.RangeUsed();
                         if (rango != null)
@@ -312,6 +376,7 @@ namespace FeelmwLogistika.Logistika.ExelDB
                             string komuna = row.Cell(10).GetValue<string>();
                             string egonlekua = row.Cell(11).GetValue<string>();
                             string informazioa = row.Cell(12).GetValue<string>();
+                            string lokali = row.Cell(13).GetValue<string>();
 
                             Eki = new Ekintzak(
                                 ekintza,
@@ -325,7 +390,8 @@ namespace FeelmwLogistika.Logistika.ExelDB
                                 Parseatu(aldagela),
                                 Parseatu(komuna),
                                 egonlekua,
-                                informazioa
+                                informazioa,
+                                lokali
                             );
 
                                 LisEki.Add(Eki);
@@ -341,7 +407,7 @@ namespace FeelmwLogistika.Logistika.ExelDB
             {
                 using (var workbook = new XLWorkbook(ruta))
                 {
-                    if (workbook.Worksheets.TryGetWorksheet("Garraioak", out IXLWorksheet hoja))
+                    if (workbook.Worksheets.TryGetWorksheet("Garraioak", out var hoja))
                     {
                         var rango = hoja.RangeUsed();
                         if (rango != null)

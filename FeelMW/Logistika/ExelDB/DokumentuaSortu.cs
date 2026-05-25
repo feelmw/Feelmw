@@ -29,11 +29,12 @@ namespace FeelmwLogistika.Logistika.ExelDB
             using (WordprocessingDocument doc =
                 WordprocessingDocument.Open(outputPath, true))
             {
-                var body = doc.MainDocumentPart.Document.Body;
-
-                if (ostalak.Count > 0 && ostalak.All(o => o.EsKlasikoa))
+                MainDocumentPart? mainPart = doc.MainDocumentPart;
+                Body? body = mainPart?.Document.Body;
+                if (mainPart == null || body == null)
                 {
-                    OstalaKlasikoaErrenkadakKendu(body);
+                    MessageBox.Show("Word txantiloiak ez dauka dokumentuaren gorputza erabilgarri.");
+                    return;
                 }
 
                 for (int i = 0; i < ostalak.Count; i++)
@@ -58,7 +59,7 @@ namespace FeelmwLogistika.Logistika.ExelDB
 
                 if (tablas.Count < 6)
                 {
-                    doc.MainDocumentPart.Document.Save();
+                    mainPart.Document.Save();
                     return;
                 }
 
@@ -115,7 +116,7 @@ namespace FeelmwLogistika.Logistika.ExelDB
                     EliminarColumnasSobrantes(tablaGarraioak1, z1);
                 }
 
-                doc.MainDocumentPart.Document.Save();
+                mainPart.Document.Save();
             }
         }
         private static void Reemplazar(Body body, int index, Ostalak o)
@@ -125,10 +126,10 @@ namespace FeelmwLogistika.Logistika.ExelDB
         { $"{{{{Ost_Ostala_{index}}}}}", o.OstalaIzena },
         { $"{{{{ost_bonoa_{index}}}}}", o.Bonoa },
         { $"{{{{ost_helbidea_{index}}}}}", o.Helbidea },
-        { $"{{{{ost_lokalizatzailea_{index}}}}}", o.XehetasunOsagarriakErakutsi ? o.Lokalizatzailea : string.Empty },
-        { $"{{{{ost_gauak_{index}}}}}", o.XehetasunOsagarriakErakutsi ? o.Gauak.ToString() : string.Empty },
-        { $"{{{{ost_datak_{index}}}}}", o.XehetasunOsagarriakErakutsi ? o.Datak : string.Empty },
-        { $"{{{{ost_gelak_{index}}}}}", o.XehetasunOsagarriakErakutsi ? o.Gelak : string.Empty },
+        { $"{{{{ost_lokalizatzailea_{index}}}}}", o.Lokalizatzailea },
+        { $"{{{{ost_gauak_{index}}}}}", o.Gauak.ToString() },
+        { $"{{{{ost_datak_{index}}}}}", o.Datak },
+        { $"{{{{ost_gelak_{index}}}}}", o.Gelak },
         { $"{{{{ost_checkin_{index}}}}}", o.Checkin },
         { $"{{{{ost_checkout_{index}}}}}", o.Checkout },
         { $"{{{{ost_doc_{index}}}}}", o.Dokumentazioa },
@@ -152,26 +153,6 @@ namespace FeelmwLogistika.Logistika.ExelDB
             }
         }
 
-        private static void OstalaKlasikoaErrenkadakKendu(Body body)
-        {
-            string[] ezkutatuBeharrekoak =
-            {
-                "ost_lokalizatzailea_",
-                "ost_gauak_",
-                "ost_datak_",
-                "ost_gelak_"
-            };
-
-            foreach (var row in body.Descendants<TableRow>().ToList())
-            {
-                string testua = string.Concat(row.Descendants<WordText>().Select(t => t.Text));
-                if (ezkutatuBeharrekoak.Any(testua.Contains))
-                {
-                    row.Remove();
-                }
-            }
-        }
-
         private  static void ReemplazarEkintza(Body body, int index, Ekintzak e)
         {
             Dictionary<string, string> mapa = new()
@@ -180,7 +161,7 @@ namespace FeelmwLogistika.Logistika.ExelDB
                 { $"{{{{eki_bonoa_{index}}}}}", e.Bonoa },
                 { $"{{{{eki_eguna_{index}}}}}", e.Iraupena },
                 { $"{{{{eki_iraupena_{index}}}}}", e.Iraupena },
-                { $"{{{{eki_lokalizatzailea_{index}}}}}", " " },
+                { $"{{{{eki_lokalizatzailea_{index}}}}}", e.Lokali },
                 { $"{{{{eki_kontaktua_{index}}}}}", e.Kontaktua },
                 { $"{{{{eki_elkartokia_{index}}}}}", e.Elkartokia },
                 { $"{{{{eki_eginbeharrekoa_{index}}}}}", e.Iristean },

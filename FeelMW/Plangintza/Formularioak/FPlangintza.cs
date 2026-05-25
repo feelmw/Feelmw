@@ -1,4 +1,3 @@
-﻿using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using FeelmwLogistika.Logistika.DatuModeloak;
 using FeelmwLogistika.Plangintza;
 using FeelmwLogistika.Plangintza.DatuModeloak;
@@ -17,19 +16,19 @@ namespace FeelmwLogistika.Plangintza.Formularioak
 {
     public partial class FPlangintza : Form
     {
-        public static string IdEditatuDokumentua;
-        public static string DokIzena;
+        public static string? IdEditatuDokumentua;
+        public static string? DokIzena;
         public static string Mota = "";
         private Panel panelak;
         private List<Hotelak> LisHot = new List<Hotelak>();
         private Hotelak? hotelaHautatua;
         private List<EkintzakPlan> LisEki = new List<EkintzakPlan>();
-        private TableLayoutPanel tlpEgunLaburpenak;
-        private TableLayoutPanel tlpEkintzak;
-        private Button btnEkintzaGehitu;
-        private Button btnMotaBerria;
-        private Button btnDatuakIkusi;
-        private Button btnZerrendaraGehitu;
+        private TableLayoutPanel tlpEgunLaburpenak = null!;
+        private TableLayoutPanel tlpEkintzak = null!;
+        private Button btnEkintzaGehitu = null!;
+        private Button btnMotaBerria = null!;
+        private Button btnDatuakIkusi = null!;
+        private Button btnZerrendaraGehitu = null!;
         private readonly List<EgunekoLaburpenaKontrolak> egunekoLaburpenak = new List<EgunekoLaburpenaKontrolak>();
         private readonly List<EkintzaKontrolak> ekintzaKontrolak = new List<EkintzaKontrolak>();
         private readonly List<ExelDB.ExelaSortu.HotelDatuak> gordetakoHotelak = new List<ExelDB.ExelaSortu.HotelDatuak>();
@@ -47,13 +46,11 @@ namespace FeelmwLogistika.Plangintza.Formularioak
             DatuakIkusiBotoiaPrestatu();
             ZerrendaraGehituBotoiaPrestatu();
 
-            btnGorde.MouseEnter += (s, e) => btnGorde.BackColor = AppEstiloa.UrdinaHover;
-            btnGorde.MouseLeave += (s, e) => btnGorde.BackColor = AppEstiloa.Urdina;
-            btnSortu.MouseEnter += (s, e) => btnSortu.BackColor = AppEstiloa.UrdinaHover;
-            btnSortu.MouseLeave += (s, e) => btnSortu.BackColor = AppEstiloa.Urdina;
-            btnIrten.MouseEnter += (s, e) => btnIrten.BackColor = AppEstiloa.GorriaHover;
-            btnIrten.MouseLeave += (s, e) => btnIrten.BackColor = AppEstiloa.Gorria;
+            AppEstiloa.BotoiGorde(btnGorde);
+            AppEstiloa.BotoiNagusia(btnSortu);
+            AppEstiloa.BotoiIrten(btnIrten);
             btnGorde.Click += btnGorde_Click;
+            btnSortu.Click += btnSortu_Click;
             cbxOstala.SelectedValueChanged += (s, e) => HotelaHautatuaGorde();
             cbxOstala.SelectedIndexChanged += (s, e) => HotelaHautatuaGorde();
             nudEgunKop.ValueChanged += (s, e) =>
@@ -66,10 +63,15 @@ namespace FeelmwLogistika.Plangintza.Formularioak
 
         private void btnIrten_Click(object sender, EventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(IdEditatuDokumentua))
+            {
+                FormularioaGarbitu();
+            }
+
             this.Close();
         }
 
-        private void btnGorde_Click(object sender, EventArgs e)
+        private void btnGorde_Click(object? sender, EventArgs e)
         {
             if (gordetakoBidaiak.Count == 0)
             {
@@ -99,14 +101,81 @@ namespace FeelmwLogistika.Plangintza.Formularioak
                 MessageBox.Show("Plangintza exela sortuta.");
                 Close();
             }
-            catch
+            catch (Exception ex)
             {
-                MessageBox.Show("Errorea exela sortzean, datuak ez dira gorde.");
+                MessageBox.Show("Errorea exela sortzean, datuak ez dira gorde: " + ex.Message);
+            }
+        }
+
+        private void btnSortu_Click(object? sender, EventArgs e)
+        {
+            if (gordetakoBidaiak.Count == 0)
+            {
+                UnekoDatuakZerrendetaraGorde();
+            }
+
+            if (gordetakoBidaiak.Count == 0)
+            {
+                MessageBox.Show("Ez dago Plangintzako daturik dokumentua sortzeko.");
+                return;
+            }
+
+            string izenLehenetsia = string.IsNullOrWhiteSpace(DokIzena) ? "MyFeelPlangintza" : DokIzena;
+            string izena = Interaction.InputBox(
+                "Idatzi dokumentuaren izena:",
+                "Plangintza dokumentua",
+                izenLehenetsia
+            );
+
+            if (string.IsNullOrWhiteSpace(izena))
+            {
+                return;
+            }
+
+            string ikastetxea = Interaction.InputBox(
+                "Idatzi ikastetxearen izena:",
+                "Plangintza dokumentua",
+                ""
+            );
+
+            if (string.IsNullOrWhiteSpace(ikastetxea))
+            {
+                return;
+            }
+
+            try
+            {
+                ExelDB.DokumentuaSortu.DokumentuEmaitza emaitza = ExelDB.DokumentuaSortu.Sortu(gordetakoBidaiak, izena, ikastetxea);
+                string mezua = "Plangintza dokumentua sortu da:\n" + emaitza.Ruta;
+                if (emaitza.Abisuak.Count > 0)
+                {
+                    mezua += "\n\nAbisuak:\n" + string.Join("\n", emaitza.Abisuak);
+                }
+
+                MessageBox.Show(mezua);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Errorea Plangintza dokumentua sortzean: " + ex.Message);
             }
         }
 
         private void FPlangintza_Load(object sender, EventArgs e)
         {
+            LisHot.Clear();
+            LisEki.Clear();
+            cbxOstala.Items.Clear();
+            cbxOstala.SelectedIndex = -1;
+            cbxOstala.Text = "";
+            cbxMota.Items.Clear();
+            cbxMota.SelectedIndex = -1;
+            cbxMota.Text = "";
+
+            if (string.IsNullOrWhiteSpace(IdEditatuDokumentua))
+            {
+                FormularioaGarbitu();
+            }
+
             try
             {
                 LisHot = ExelDB.ListakKargatu.OstalakListaratu();
@@ -330,6 +399,7 @@ namespace FeelmwLogistika.Plangintza.Formularioak
                 UseVisualStyleBackColor = false
             };
             btnEkintzaGehitu.FlatAppearance.BorderSize = 0;
+            AppEstiloa.BotoiNagusia(btnEkintzaGehitu);
             btnEkintzaGehitu.Click += (s, e) => EkintzaLerroaGehitu();
 
             btnMotaBerria = new Button
@@ -344,6 +414,7 @@ namespace FeelmwLogistika.Plangintza.Formularioak
                 UseVisualStyleBackColor = false
             };
             btnMotaBerria.FlatAppearance.BorderSize = 0;
+            AppEstiloa.BotoiGehitu(btnMotaBerria);
             btnMotaBerria.Click += (s, e) => MotaBerriaGehitu();
 
             panel2.Controls.Add(tlpEkintzak);
@@ -396,9 +467,9 @@ namespace FeelmwLogistika.Plangintza.Formularioak
 
                 MessageBox.Show("Ekintza berria Driveko exelean gorde da.");
             }
-            catch
+            catch (Exception ex)
             {
-                MessageBox.Show("Errorea ekintza berria Driveko exelean gordetzean.");
+                MessageBox.Show("Errorea ekintza berria Driveko exelean gordetzean: " + ex.Message);
             }
         }
 
@@ -418,8 +489,7 @@ namespace FeelmwLogistika.Plangintza.Formularioak
                 UseVisualStyleBackColor = false
             };
             btnZerrendaraGehitu.FlatAppearance.BorderSize = 0;
-            btnZerrendaraGehitu.MouseEnter += (s, e) => btnZerrendaraGehitu.BackColor = AppEstiloa.BerdeaHover;
-            btnZerrendaraGehitu.MouseLeave += (s, e) => btnZerrendaraGehitu.BackColor = AppEstiloa.Berdea;
+            AppEstiloa.BotoiGehitu(btnZerrendaraGehitu);
             btnZerrendaraGehitu.Click += (s, e) =>
             {
                 UnekoDatuakZerrendetaraGorde();
@@ -447,8 +517,7 @@ namespace FeelmwLogistika.Plangintza.Formularioak
                 UseVisualStyleBackColor = false
             };
             btnDatuakIkusi.FlatAppearance.BorderSize = 0;
-            btnDatuakIkusi.MouseEnter += (s, e) => btnDatuakIkusi.BackColor = AppEstiloa.UrdinaHover;
-            btnDatuakIkusi.MouseLeave += (s, e) => btnDatuakIkusi.BackColor = AppEstiloa.Urdina;
+            AppEstiloa.BotoiNagusia(btnDatuakIkusi);
             btnDatuakIkusi.Click += (s, e) => DatuakIkusiIreki();
 
             panel2.Controls.Add(btnDatuakIkusi);
@@ -469,6 +538,7 @@ namespace FeelmwLogistika.Plangintza.Formularioak
             panelak.Controls.Add(form);
             form.BringToFront();
             form.Show();
+            form.FormClosed += (s, e) => panelak.Controls.Remove(form);
         }
 
         public void KargatuBidaiaEditatzeko(Bidaiak bidaia)
@@ -572,6 +642,7 @@ namespace FeelmwLogistika.Plangintza.Formularioak
             cbxOstala.Text = "";
             hotelaHautatua = null;
             bidaiaEditatzen = null;
+            nudEgunKop.Value = 1;
             txtData.Clear();
 
             foreach (EgunekoLaburpenaKontrolak laburpena in egunekoLaburpenak)
@@ -584,6 +655,7 @@ namespace FeelmwLogistika.Plangintza.Formularioak
 
             ekintzaKontrolak.Clear();
             EkintzaLerroaGehitu();
+            EkintzenEgunakEguneratu();
         }
 
         private ExelDB.ExelaSortu.HotelDatuak HotelDatuakSortu()

@@ -40,6 +40,7 @@
             btnPlangintza = new Button();
             lblDoku = new Label();
             cbxDoku = new ComboBox();
+            btnJarraitu = new Button();
             panelak.SuspendLayout();
             SuspendLayout();
             // 
@@ -211,7 +212,25 @@
             cbxDoku.TabIndex = 7;
             cbxDoku.Visible = false;
             cbxDoku.SelectedIndexChanged += cbxDoku_SelectedIndexChanged;
-            // 
+            //
+            // btnJarraitu
+            //
+            btnJarraitu.Anchor = AnchorStyles.Top;
+            btnJarraitu.BackColor = Color.FromArgb(0, 120, 215);
+            btnJarraitu.Cursor = Cursors.Hand;
+            btnJarraitu.FlatAppearance.BorderSize = 0;
+            btnJarraitu.FlatStyle = FlatStyle.Flat;
+            btnJarraitu.Font = new Font("Segoe UI Semibold", 10F);
+            btnJarraitu.ForeColor = Color.White;
+            btnJarraitu.Location = new Point(592, 300);
+            btnJarraitu.Name = "btnJarraitu";
+            btnJarraitu.Size = new Size(150, 45);
+            btnJarraitu.TabIndex = 10;
+            btnJarraitu.Text = "Jarraitu";
+            btnJarraitu.UseVisualStyleBackColor = false;
+            btnJarraitu.Visible = false;
+            btnJarraitu.Click += btnJarraitu_Click;
+            //
             // FLogina
             // 
             AutoScaleDimensions = new SizeF(9F, 23F);
@@ -222,6 +241,7 @@
             Controls.Add(lblMota);
             Controls.Add(lblMyfeel);
             Controls.Add(panelak);
+            Controls.Add(btnJarraitu);
             Font = new Font("Segoe UI", 10F);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "FLogina";
@@ -237,7 +257,6 @@
         #endregion
 
         private Label lblMyfeel;
-        private Button btnGorde;
         private Button btnEditatu;
         private Button btnLogistika;
         private Button btnIrten;
@@ -248,5 +267,6 @@
         private ComboBox cbxDoku;
         private Button btnDokumentazioa;
         private Button btnPlangintza;
+        private Button btnJarraitu;
     }
 }

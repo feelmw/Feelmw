@@ -1,5 +1,6 @@
 ﻿using FeelmwLogistika.Logistika.DatuModeloak;
 using FeelmwLogistika.Logistika.ExelDB;
+using FeelmwLogistika.Plangintza;
 using FeelmwLogistika.Plangintza.Formularioak;
 using Google.Apis.Sheets.v4.Data;
 using System;
@@ -22,8 +23,7 @@ namespace FeelmwLogistika
 
         private void FLogina_Load(object sender, EventArgs e)
         {
-            lblMota.Visible = false;
-            cbxMota.Visible = false;
+            HasierakoMenuaErakutsi();
         }
 
         public FLogina()
@@ -33,23 +33,15 @@ namespace FeelmwLogistika
             this.DoubleBuffered = true;
             AppEstiloa.Aplikatu(this);
 
-            btnLogistika.MouseEnter += (s, e) => btnLogistika.BackColor = AppEstiloa.UrdinaHover;
-            btnLogistika.MouseLeave += (s, e) => btnLogistika.BackColor = AppEstiloa.Urdina;
-
-            btnEditatu.MouseEnter += (s, e) => btnEditatu.BackColor = AppEstiloa.UrdinaHover;
-            btnEditatu.MouseLeave += (s, e) => btnEditatu.BackColor = AppEstiloa.Urdina;
-
-            btnPlangintza.MouseEnter += (s, e) => btnPlangintza.BackColor = AppEstiloa.UrdinaHover;
-            btnPlangintza.MouseLeave += (s, e) => btnPlangintza.BackColor = AppEstiloa.Urdina;
-
-            btnDokumentazioa.MouseEnter += (s, e) => btnDokumentazioa.BackColor = AppEstiloa.UrdinaHover;
-            btnDokumentazioa.MouseLeave += (s, e) => btnDokumentazioa.BackColor = AppEstiloa.Urdina;
+            AppEstiloa.BotoiNagusia(btnLogistika);
+            AppEstiloa.BotoiNagusia(btnEditatu);
+            AppEstiloa.BotoiNagusia(btnPlangintza);
+            AppEstiloa.BotoiNagusia(btnDokumentazioa);
             btnDokumentazioa.Click += btnDokumentazioa_Click;
 
-            btnIrten.MouseEnter += (s, e) => btnIrten.BackColor = AppEstiloa.GorriaHover;
-            btnIrten.MouseLeave += (s, e) => btnIrten.BackColor = AppEstiloa.Gorria;
+            AppEstiloa.BotoiIrten(btnIrten);
+            AppEstiloa.BotoiNagusia(btnJarraitu);
 
-            cbxMota.SelectedIndexChanged += cbxMota_SelectedIndexChanged;
         }
 
         private void btnLogistika_Click(object sender, EventArgs e)
@@ -57,7 +49,7 @@ namespace FeelmwLogistika
             MotaAukeraErakutsi("Logistika");
         }
 
-        private void btnDokumentazioa_Click(object sender, EventArgs e)
+        private void btnDokumentazioa_Click(object? sender, EventArgs e)
         {
             MotaAukeraErakutsi("Dokumentazioa");
         }
@@ -72,14 +64,25 @@ namespace FeelmwLogistika
             motaHelburua = helburua;
             lblMota.Visible = true;
             cbxMota.Visible = true;
+            btnJarraitu.Visible = true;
+            btnLogistika.Visible = false;
+            btnPlangintza.Visible = false;
+            btnDokumentazioa.Visible = false;
+            btnEditatu.Visible = false;
+            btnIrten.Visible = true;
             cbxMota.SelectedIndex = -1;
             cbxMota.Focus();
+            lblMota.BringToFront();
+            cbxMota.BringToFront();
+            btnJarraitu.BringToFront();
+            btnIrten.BringToFront();
         }
 
-        private void cbxMota_SelectedIndexChanged(object sender, EventArgs e)
+        private void btnJarraitu_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(motaHelburua) || cbxMota.SelectedItem == null)
             {
+                MessageBox.Show("Aukeratu bidaia mota jarraitu aurretik.");
                 return;
             }
 
@@ -104,11 +107,13 @@ namespace FeelmwLogistika
                 FMenuNagusia.Mota = "";
                 FPlangintza.Mota = "";
                 DokumentazioaMota = mota;
+                HasierakoMenuaErakutsi();
             }
         }
 
         private void LogistikaBerriaIreki()
         {
+            LogistikaPlangintzaZubia.Garbitu();
             FMenuNagusia.IdEditatuDokumentua = null;
             FMenuNagusia.DokIzena = null;
             FPlangintza.IdEditatuDokumentua = null;
@@ -119,7 +124,11 @@ namespace FeelmwLogistika
 
         private void btnIrten_Click(object sender, EventArgs e)
         {
-            if (btnEditatu.Text == "📄 Editatu dok.")
+            if (!string.IsNullOrWhiteSpace(motaHelburua))
+            {
+                HasierakoMenuaErakutsi();
+            }
+            else if (btnEditatu.Text == "📄 Editatu dok.")
             {
                 this.Close();
             }
@@ -130,6 +139,9 @@ namespace FeelmwLogistika
                 btnDokumentazioa.Visible = true;
                 lblDoku.Visible = false;
                 cbxDoku.Visible = false;
+                lblMota.Visible = false;
+                cbxMota.Visible = false;
+                btnJarraitu.Visible = false;
                 btnEditatu.Text = "📄 Editatu dok.";
                 FMenuNagusia.IdEditatuDokumentua = null;
                 FMenuNagusia.DokIzena = null;
@@ -245,6 +257,7 @@ namespace FeelmwLogistika
             lblMyfeel.Visible = false;
             lblMota.Visible = false;
             cbxMota.Visible = false;
+            btnJarraitu.Visible = false;
             btnLogistika.Visible = false;
             btnEditatu.Visible = false;
             btnIrten.Visible = false;
@@ -253,6 +266,7 @@ namespace FeelmwLogistika
 
             form.FormClosed += (s, args) =>
             {
+                panelak.Controls.Remove(form);
                 HasierakoMenuaErakutsi();
             };
         }
@@ -263,6 +277,7 @@ namespace FeelmwLogistika
             lblMyfeel.Visible = true;
             lblMota.Visible = false;
             cbxMota.Visible = false;
+            btnJarraitu.Visible = false;
             lblDoku.Visible = false;
             cbxDoku.Visible = false;
             btnLogistika.Visible = true;

@@ -9,7 +9,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.VisualBasic;
-using System.Web;
 using FeelmwLogistika.Logistika.ExelDB;
 using FeelmwLogistika.Logistika.DatuModeloak;
 using FeelmwLogistika.Plangintza;
@@ -19,8 +18,8 @@ namespace FeelmwLogistika
     public partial class FMenuNagusia : Form
     {
         private Panel panela;
-        public static string IdEditatuDokumentua;
-        public static string DokIzena;
+        public static string? IdEditatuDokumentua;
+        public static string? DokIzena;
         public static string Mota = "";
         private List<Ostalak> LisOst = new List<Ostalak>();
         private List<Ekintzak> LisEki = new List<Ekintzak>();
@@ -45,17 +44,13 @@ namespace FeelmwLogistika
             this.DoubleBuffered = true;
             AppEstiloa.Aplikatu(this);
 
-            btnOstala.MouseEnter += (s, e) => btnOstala.BackColor = Color.FromArgb(248, 250, 252);
-            btnOstala.MouseLeave += (s, e) => btnOstala.BackColor = Color.White;
-
-            btnEkintza.MouseEnter += (s, e) => btnEkintza.BackColor = Color.FromArgb(248, 250, 252);
-            btnEkintza.MouseLeave += (s, e) => btnEkintza.BackColor = Color.White;
-
-            btnGarraioa.MouseEnter += (s, e) => btnGarraioa.BackColor = Color.FromArgb(248, 250, 252);
-            btnGarraioa.MouseLeave += (s, e) => btnGarraioa.BackColor = Color.White;
-
-            btnIkudi.MouseEnter += (s, e) => btnIkudi.BackColor = Color.FromArgb(248, 250, 252);
-            btnIkudi.MouseLeave += (s, e) => btnIkudi.BackColor = Color.White;
+            AppEstiloa.BotoiNeutro(btnOstala);
+            AppEstiloa.BotoiNeutro(btnEkintza);
+            AppEstiloa.BotoiNeutro(btnGarraioa);
+            AppEstiloa.BotoiNeutro(btnIkudi);
+            AppEstiloa.BotoiGorde(btnGorde);
+            AppEstiloa.BotoiNagusia(btnSortu);
+            AppEstiloa.BotoiIrten(btnIrten);
 
         }
 
@@ -70,12 +65,14 @@ namespace FeelmwLogistika
 
             fo.FormClosed += (s, args) =>
             {
-                Ostalak ost = fo.Ost;
+                Ostalak? ost = fo.Ost;
                 if (ost != null)
                 {
                     LisOst.Add(ost);
                     LogistikaPlangintzaZubia.OstalaGorde(ost);
                 }
+
+                panela.Controls.Remove(fo);
             };
         }
 
@@ -90,11 +87,13 @@ namespace FeelmwLogistika
 
             fe.FormClosed += (s, args) =>
             {
-                Ekintzak ekintza = fe.Eki;
+                Ekintzak? ekintza = fe.Eki;
                 if (ekintza != null)
                 {
                     LisEki.Add(ekintza);
                 }
+
+                panela.Controls.Remove(fe);
             };
         }
 
@@ -109,16 +108,19 @@ namespace FeelmwLogistika
 
             fg.FormClosed += (s, args) =>
             {
-                Garraioak garraioa = fg.Gar;
+                Garraioak? garraioa = fg.Gar;
                 if (garraioa != null)
                 {
                     LisGar.Add(garraioa);
                 }
+
+                panela.Controls.Remove(fg);
             };
         }
 
         private void btnIrten_Click(object sender, EventArgs e)
         {
+            LimpiarFormulario();
             this.Close();
         }
 
@@ -138,7 +140,7 @@ namespace FeelmwLogistika
                 nombre = Microsoft.VisualBasic.Interaction.InputBox(
                 "Idatzi dokumentuaren izena:",
                 "Dokumentu berria",
-                DokIzena
+                DokIzena ?? ""
                 );
             }
 
@@ -154,9 +156,9 @@ namespace FeelmwLogistika
                 GordeLogistikaEtaPlangintza(nombre);
                 this.Close();
             }
-            catch
+            catch (Exception ex)
             {
-                MessageBox.Show("Errorea exela sortzean, datuak ez dira gorde");
+                MessageBox.Show("Errorea exela sortzean, datuak ez dira gorde: " + ex.Message);
             }
         }
 
@@ -200,7 +202,7 @@ namespace FeelmwLogistika
                 nombre = Microsoft.VisualBasic.Interaction.InputBox(
                "Idatzi dokumentuaren izena:",
                "Dokumentu berria",
-               DokIzena
+               DokIzena ?? ""
                );
             }
                 
@@ -229,6 +231,13 @@ namespace FeelmwLogistika
             fd.BringToFront();
             fd.Show();
 
+        }
+
+        private void LimpiarFormulario()
+        {
+            LisOst.Clear();
+            LisEki.Clear();
+            LisGar.Clear();
         }
     }
 }

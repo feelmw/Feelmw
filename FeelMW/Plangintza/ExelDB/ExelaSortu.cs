@@ -130,10 +130,10 @@ namespace FeelmwLogistika.Plangintza.ExelDB
         {
             using XLWorkbook workbook = new XLWorkbook(ruta);
 
-            if (workbook.Worksheets.TryGetWorksheet("Laburpena", out IXLWorksheet laburpenaSheet)
-                && workbook.Worksheets.TryGetWorksheet("Hotelak", out IXLWorksheet hotelakSheet)
-                && workbook.Worksheets.TryGetWorksheet("Egunak", out IXLWorksheet egunakSheet)
-                && workbook.Worksheets.TryGetWorksheet("Ekintzak", out IXLWorksheet ekintzakSheet))
+            if (workbook.Worksheets.TryGetWorksheet("Laburpena", out var laburpenaSheet)
+                && workbook.Worksheets.TryGetWorksheet("Hotelak", out var hotelakSheet)
+                && workbook.Worksheets.TryGetWorksheet("Egunak", out var egunakSheet)
+                && workbook.Worksheets.TryGetWorksheet("Ekintzak", out var ekintzakSheet))
             {
                 return EgituraBerriaIrakurri(laburpenaSheet, hotelakSheet, egunakSheet, ekintzakSheet);
             }
@@ -149,7 +149,7 @@ namespace FeelmwLogistika.Plangintza.ExelDB
         {
             PlangintzaDatuak datuak = new PlangintzaDatuak
             {
-                Ostala = laburpenaSheet.Cell(1, 2).GetValue<string>(),
+                Ostala = CeldaTestua(laburpenaSheet.Cell(1, 2)),
                 EgunKop = Math.Max(1, CeldaEnteroa(laburpenaSheet.Cell(2, 2), 1))
             };
             datuak.Hotela = HotelaIrakurri(hotelakSheet, datuak.EgunKop);
@@ -162,10 +162,10 @@ namespace FeelmwLogistika.Plangintza.ExelDB
                 {
                     datuak.Egunak.Add(new EgunLaburpena(
                         CeldaEnteroa(row.Cell(1), datuak.Egunak.Count + 1),
-                        row.Cell(2).GetValue<string>(),
-                        row.Cell(3).GetValue<string>(),
-                        row.Cell(4).GetValue<string>(),
-                        row.Cell(5).GetValue<string>()
+                        CeldaTestua(row.Cell(2)),
+                        CeldaTestua(row.Cell(3)),
+                        CeldaTestua(row.Cell(4)),
+                        CeldaTestua(row.Cell(5))
                     ));
                 }
             }
@@ -178,10 +178,10 @@ namespace FeelmwLogistika.Plangintza.ExelDB
                 foreach (IXLRangeRow row in ekintzakRange.RowsUsed().Skip(1))
                 {
                     datuak.Ekintzak.Add(new EkintzaDatuak(
-                        row.Cell(1).GetValue<string>(),
-                        row.Cell(2).GetValue<string>(),
-                        row.Cell(3).GetValue<string>(),
-                        row.Cell(4).GetValue<string>()
+                        CeldaTestua(row.Cell(1)),
+                        CeldaTestua(row.Cell(2)),
+                        CeldaTestua(row.Cell(3)),
+                        CeldaTestua(row.Cell(4))
                     ));
                 }
             }
@@ -200,21 +200,21 @@ namespace FeelmwLogistika.Plangintza.ExelDB
             }
 
             IXLRangeRow row = range.FirstRowUsed();
-            datuak.Ostala = row.Cell(1).GetValue<string>();
+            datuak.Ostala = CeldaTestua(row.Cell(1));
             datuak.EgunKop = Math.Max(1, CeldaEnteroa(row.Cell(2), 1));
-            datuak.Data = row.Cell(3).GetValue<string>();
+            datuak.Data = CeldaTestua(row.Cell(3));
             datuak.Egunak.Add(new EgunLaburpena(
                 1,
                 datuak.Data,
-                row.Cell(4).GetValue<string>(),
-                row.Cell(5).GetValue<string>(),
-                row.Cell(6).GetValue<string>()
+                CeldaTestua(row.Cell(4)),
+                CeldaTestua(row.Cell(5)),
+                CeldaTestua(row.Cell(6))
             ));
             datuak.Ekintzak.Add(new EkintzaDatuak(
                 datuak.Data,
-                row.Cell(7).GetValue<string>(),
-                row.Cell(8).GetValue<string>(),
-                row.Cell(9).GetValue<string>()
+                CeldaTestua(row.Cell(7)),
+                CeldaTestua(row.Cell(8)),
+                CeldaTestua(row.Cell(9))
             ));
             datuak.Hotela = new HotelDatuak("", datuak.Ostala, "", datuak.EgunKop, datuak.Data);
 
@@ -231,11 +231,11 @@ namespace FeelmwLogistika.Plangintza.ExelDB
 
             IXLRangeRow row = range.RowsUsed().Skip(1).FirstOrDefault() ?? range.FirstRowUsed();
             return new HotelDatuak(
-                row.Cell(1).GetValue<string>(),
-                row.Cell(2).GetValue<string>(),
-                row.Cell(3).GetValue<string>(),
+                CeldaTestua(row.Cell(1)),
+                CeldaTestua(row.Cell(2)),
+                CeldaTestua(row.Cell(3)),
                 CeldaEnteroa(row.Cell(4), egunKop),
-                row.Cell(5).GetValue<string>()
+                CeldaTestua(row.Cell(5))
             );
         }
 
@@ -257,6 +257,11 @@ namespace FeelmwLogistika.Plangintza.ExelDB
 
             string testua = cell.GetValue<string>();
             return int.TryParse(testua, out balioa) ? balioa : lehenetsia;
+        }
+
+        private static string CeldaTestua(IXLCell cell)
+        {
+            return cell.GetValue<string>() ?? "";
         }
 
         private static void HotelakIdatzi(IXLWorksheet sheet, HotelDatuak hotela)

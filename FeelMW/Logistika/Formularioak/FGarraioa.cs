@@ -13,7 +13,7 @@ namespace FeelmwLogistika.Formularioak
 {
     public partial class FGarraioa : Form
     {
-        public Garraioak Gar;
+        public Garraioak? Gar;
         private readonly Garraioak? garraioaEditatzen;
         public FGarraioa()
         {
@@ -21,11 +21,8 @@ namespace FeelmwLogistika.Formularioak
             this.DoubleBuffered = true;
             AppEstiloa.Aplikatu(this);
 
-            btnGorde.MouseEnter += (s, e) => btnGorde.BackColor = AppEstiloa.UrdinaHover;
-            btnGorde.MouseLeave += (s, e) => btnGorde.BackColor = AppEstiloa.Urdina;
-
-            btnIrten.MouseEnter += (s, e) => btnIrten.BackColor = AppEstiloa.GorriaHover;
-            btnIrten.MouseLeave += (s, e) => btnIrten.BackColor = AppEstiloa.Gorria;
+            AppEstiloa.BotoiGorde(btnGorde);
+            AppEstiloa.BotoiIrten(btnIrten);
         }
 
         public FGarraioa(Garraioak garraioa) : this()
@@ -40,10 +37,19 @@ namespace FeelmwLogistika.Formularioak
             {
                 GarraioaKargatu(garraioaEditatzen);
             }
+            else
+            {
+                LimpiarFormulario();
+            }
         }
 
         private void btnIrten_Click(object sender, EventArgs e)
         {
+            if (garraioaEditatzen == null)
+            {
+                LimpiarFormulario();
+            }
+
             this.Close();
         }
 
@@ -78,9 +84,18 @@ namespace FeelmwLogistika.Formularioak
             txtInfo.Text = garraioa.Informazioa;
         }
 
-        private void panel1_Paint(object sender, PaintEventArgs e)
+        private void LimpiarFormulario()
         {
-
+            Gar = null;
+            txtGarraioa.Clear();
+            dtpEguna.Value = DateTime.Today;
+            txtOrdutegia.Clear();
+            txtLokali.Clear();
+            txtkontaktua.Clear();
+            txtElkartokia.Clear();
+            txtEginbeharrak.Clear();
+            txtInfo.Clear();
         }
+
     }
 }

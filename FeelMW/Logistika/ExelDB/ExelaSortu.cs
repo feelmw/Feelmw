@@ -42,10 +42,10 @@ namespace FeelmwLogistika.Logistika.ExelDB
                     sheet.Cell(row, 1).Value = o.OstalaIzena;
                     sheet.Cell(row, 2).Value = o.Bonoa;
                     sheet.Cell(row, 3).Value = o.Helbidea;
-                    sheet.Cell(row, 4).Value = o.XehetasunOsagarriakErakutsi ? o.Lokalizatzailea : string.Empty;
-                    sheet.Cell(row, 5).Value = o.XehetasunOsagarriakErakutsi ? o.Gauak : string.Empty;
-                    sheet.Cell(row, 6).Value = o.XehetasunOsagarriakErakutsi ? o.Datak : string.Empty;
-                    sheet.Cell(row, 7).Value = o.XehetasunOsagarriakErakutsi ? o.Gelak : string.Empty;
+                    sheet.Cell(row, 4).Value = o.Lokalizatzailea;
+                    sheet.Cell(row, 5).Value = o.Gauak;
+                    sheet.Cell(row, 6).Value = o.Datak;
+                    sheet.Cell(row, 7).Value = o.Gelak;
                     sheet.Cell(row, 8).Value = o.Checkin;
                     sheet.Cell(row, 9).Value = o.Checkout;
                     sheet.Cell(row, 10).Value = o.Dokumentazioa;
@@ -90,6 +90,7 @@ namespace FeelmwLogistika.Logistika.ExelDB
                     sheet.Cell(row, 10).Value = DatuakIrakurri.BoolToBaiEz(e.Komuna);
                     sheet.Cell(row, 11).Value = e.Egonlekua;
                     sheet.Cell(row, 12).Value = e.Informazioa;
+                    sheet.Cell(row, 13).Value = e.Lokali;
 
                     row++;
                 }

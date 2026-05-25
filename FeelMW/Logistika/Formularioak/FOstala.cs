@@ -1,6 +1,7 @@
 ﻿using FeelmwLogistika.Logistika.DatuModeloak;
 using FeelmwLogistika.Logistika.ExelDB;
 using FeelmwLogistika.Plangintza;
+using FeelmwLogistika;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,13 +12,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FeelmwLogistika.Formularioak
 {
     public partial class FOstala : Form
     {
-        public Ostalak Ost;
+        public Ostalak? Ost;
         private List<Ostalak> LisOst = new List<Ostalak>();
         private readonly Ostalak? ostalaEditatzen;
         private bool EsKlasikoa => string.Equals(FMenuNagusia.Mota, "Klasikoa", StringComparison.Ordinal)
@@ -28,19 +28,18 @@ namespace FeelmwLogistika.Formularioak
             InitializeComponent();
 
             cbxOstala.Focus();
-            txtLokali.Text = "Feelmw";
+            nudGauak.Minimum = 1;
+            nudGauak.Value = BalioLehenetsiak.Gauak;
+            txtLokali.Text = BalioLehenetsiak.Lokalizatzailea;
 
             this.DoubleBuffered = true;
             AppEstiloa.Aplikatu(this);
 
-            btnGorde.MouseEnter += (s, e) => btnGorde.BackColor = AppEstiloa.UrdinaHover;
-            btnGorde.MouseLeave += (s, e) => btnGorde.BackColor = AppEstiloa.Urdina;
-
-            btnGehitu.MouseEnter += (s, e) => btnGehitu.BackColor = AppEstiloa.BerdeaHover;
-            btnGehitu.MouseLeave += (s, e) => btnGehitu.BackColor = AppEstiloa.Berdea;
-
-            btnIrten.MouseEnter += (s, e) => btnIrten.BackColor = AppEstiloa.GorriaHover;
-            btnIrten.MouseLeave += (s, e) => btnIrten.BackColor = AppEstiloa.Gorria;
+            AppEstiloa.BotoiGorde(btnGorde);
+            AppEstiloa.BotoiGehitu(btnGehitu);
+            AppEstiloa.BotoiIrten(btnIrten);
+            nudGauak.ValueChanged += (s, e) => GauakBalidatu();
+            nudGauak.Leave += (s, e) => GauakBalidatu();
 
             AplicarModoKlasikoa();
         }
@@ -54,6 +53,11 @@ namespace FeelmwLogistika.Formularioak
 
         private void FOstala_Load(object sender, EventArgs e)
         {
+            if (ostalaEditatzen == null)
+            {
+                LimpiarFormulario();
+            }
+
             try
             {
                 this.LisOst = DatuakIrakurri.OstalakListaratu();
@@ -69,6 +73,7 @@ namespace FeelmwLogistika.Formularioak
                 this.LisOst.RemoveAt(0);
             }
 
+            cbxOstala.Items.Clear();
             foreach (Ostalak ost in LisOst)
             {
                 cbxOstala.Items.Add(ost.OstalaIzena);
@@ -84,6 +89,11 @@ namespace FeelmwLogistika.Formularioak
 
         private void btnIrten_Click(object sender, EventArgs e)
         {
+            if (ostalaEditatzen == null)
+            {
+                LimpiarFormulario();
+            }
+
             this.Close();
         }
 
@@ -103,14 +113,23 @@ namespace FeelmwLogistika.Formularioak
                 {
                     txtBonoa.Text = ostala.Bonoa;
                     txtHelbidea.Text = ostala.Helbidea;
+                    txtLokali.Text = ostala.Lokalizatzailea;
+                    nudGauak.Value = GauakBalioa(ostala.Gauak);
+                    DatakKargatu(ostala.Datak);
+                    txtGelak.Text = ostala.Gelak;
                     txtIn.Text = ostala.Checkin;
                     txtOut.Text = ostala.Checkout;
                     txtDoku.Text = ostala.Dokumentazioa;
                     txtHarrera.Text = ostala.Harrera;
+                    txtGosaria.Text = ostala.Gosariates;
+                    txtBazkaria.Text = ostala.Bazkariates;
+                    txtAfaria.Text = ostala.Afariates;
                     chkLuggage.Checked = ostala.Luggage;
                     txtLuggage.Text = ostala.LuggageKuota;
                     chkToallak.Checked = ostala.Toailak;
                     chkIzarak.Checked = ostala.Izarak;
+                    chkFidantza.Checked = ostala.Fidantza;
+                    txtFidantza.Text = ostala.FidantzaKuota;
                     txtInst.Text = ostala.Instalazioak;
                 }
             }
@@ -148,10 +167,10 @@ namespace FeelmwLogistika.Formularioak
         }
         private Ostalak OstalaSortu()
         {
-            string lokalizatzailea = EsKlasikoa ? string.Empty : txtLokali.Text;
-            int gauak = EsKlasikoa ? 0 : (int)nudGauak.Value;
-            string datak = EsKlasikoa ? string.Empty : datHasiera.Value.ToShortDateString() + " - " + datAmaiera.Value.ToShortDateString();
-            string gelak = EsKlasikoa ? string.Empty : txtGelak.Text;
+            string lokalizatzailea = LokaliBalioa();
+            int gauak = GauakBalioa((int)nudGauak.Value);
+            string datak = datHasiera.Value.ToShortDateString() + " - " + datAmaiera.Value.ToShortDateString();
+            string gelak = txtGelak.Text;
 
             Ostalak ostala = new Ostalak(
                 cbxOstala.Text,
@@ -196,13 +215,59 @@ namespace FeelmwLogistika.Formularioak
             datAmaiera.Visible = erakutsi;
         }
 
+        private void LimpiarFormulario()
+        {
+            Ost = null;
+            cbxOstala.SelectedIndex = -1;
+            cbxOstala.Text = "";
+            txtBonoa.Clear();
+            txtHelbidea.Clear();
+            txtLokali.Text = BalioLehenetsiak.Lokalizatzailea;
+            nudGauak.Value = BalioLehenetsiak.Gauak;
+            datHasiera.Value = DateTime.Today;
+            datAmaiera.Value = DateTime.Today;
+            txtGelak.Clear();
+            txtIn.Clear();
+            txtOut.Clear();
+            txtDoku.Clear();
+            txtHarrera.Clear();
+            txtGosaria.Clear();
+            txtBazkaria.Clear();
+            txtAfaria.Clear();
+            chkToallak.Checked = false;
+            chkIzarak.Checked = false;
+            chkFidantza.Checked = false;
+            txtFidantza.Clear();
+            chkLuggage.Checked = false;
+            txtLuggage.Clear();
+            txtInst.Clear();
+        }
+
+        private string LokaliBalioa()
+        {
+            return string.IsNullOrWhiteSpace(txtLokali.Text) ? BalioLehenetsiak.Lokalizatzailea : txtLokali.Text;
+        }
+
+        private int GauakBalioa(int gauak)
+        {
+            return gauak < BalioLehenetsiak.Gauak ? BalioLehenetsiak.Gauak : gauak;
+        }
+
+        private void GauakBalidatu()
+        {
+            if (nudGauak.Value < BalioLehenetsiak.Gauak)
+            {
+                nudGauak.Value = BalioLehenetsiak.Gauak;
+            }
+        }
+
         private void OstalaKargatu(Ostalak ostala)
         {
             cbxOstala.Text = ostala.OstalaIzena;
             txtBonoa.Text = ostala.Bonoa;
             txtHelbidea.Text = ostala.Helbidea;
             txtLokali.Text = ostala.Lokalizatzailea;
-            nudGauak.Value = Math.Min(Math.Max(ostala.Gauak, (int)nudGauak.Minimum), (int)nudGauak.Maximum);
+            nudGauak.Value = Math.Min(Math.Max(GauakBalioa(ostala.Gauak), (int)nudGauak.Minimum), (int)nudGauak.Maximum);
             DatakKargatu(ostala.Datak);
             txtGelak.Text = ostala.Gelak;
             txtIn.Text = ostala.Checkin;
@@ -240,14 +305,5 @@ namespace FeelmwLogistika.Formularioak
             }
         }
 
-        private void panel1_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void cbxOstala_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
     }
 }

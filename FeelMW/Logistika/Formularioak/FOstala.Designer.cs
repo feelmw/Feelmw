@@ -154,9 +154,11 @@
             nudGauak.BackColor = Color.FromArgb(250, 250, 250);
             nudGauak.BorderStyle = BorderStyle.FixedSingle;
             nudGauak.Location = new Point(31, 175);
+            nudGauak.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             nudGauak.Name = "nudGauak";
             nudGauak.Size = new Size(437, 30);
             nudGauak.TabIndex = 27;
+            nudGauak.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
             // lblAfaria
             // 

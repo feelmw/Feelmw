@@ -333,18 +333,14 @@
         #endregion
 
         private Label lblMyfeel;
-        private Label lblAzpititulua;
         private TableLayoutPanel tableLayoutPanel1;
         private Panel panOstala;
         private Panel panGarraioa;
-        private Label lblOstalaAzpi;
-        private Label lblGarraioaTes;
         private Label lblArduraduna;
         private Button btnGorde;
         private Button btnIrten;
         private Button btnOstala;
         private Panel panEkintza;
-        private Label lblEkintzaAzpi;
         private Label lblEkintzaIco;
         private Button btnEkintza;
         private Button btnGarraioa;

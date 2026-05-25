@@ -1,5 +1,6 @@
 ﻿using FeelmwLogistika.Logistika.DatuModeloak;
 using FeelmwLogistika.Logistika.ExelDB;
+using FeelmwLogistika;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -14,7 +15,7 @@ namespace FeelmwLogistika.Formularioak
 {
     public partial class FEkintza : Form
     {
-        public Ekintzak Eki;
+        public Ekintzak? Eki;
         public List<Ekintzak> LisEki = new List<Ekintzak>();
         private readonly Ekintzak? ekintzaEditatzen;
         public FEkintza()
@@ -24,14 +25,11 @@ namespace FeelmwLogistika.Formularioak
             DoubleBuffered = true;
             AppEstiloa.Aplikatu(this);
 
-            btnGorde.MouseEnter += (s, e) => btnGorde.BackColor = AppEstiloa.UrdinaHover;
-            btnGorde.MouseLeave += (s, e) => btnGorde.BackColor = AppEstiloa.Urdina;
+            AppEstiloa.BotoiGorde(btnGorde);
+            AppEstiloa.BotoiGehitu(btnGehitu);
+            AppEstiloa.BotoiIrten(btnIrten);
 
-            btnGehitu.MouseEnter += (s, e) => btnGehitu.BackColor = AppEstiloa.BerdeaHover;
-            btnGehitu.MouseLeave += (s, e) => btnGehitu.BackColor = AppEstiloa.Berdea;
-
-            btnIrten.MouseEnter += (s, e) => btnIrten.BackColor = AppEstiloa.GorriaHover;
-            btnIrten.MouseLeave += (s, e) => btnIrten.BackColor = AppEstiloa.Gorria;
+            txtLokali.Text = BalioLehenetsiak.Lokalizatzailea;
         }
 
         public FEkintza(Ekintzak ekintza) : this()
@@ -43,6 +41,11 @@ namespace FeelmwLogistika.Formularioak
 
         private void btnIrten_Click(object sender, EventArgs e)
         {
+            if (ekintzaEditatzen == null)
+            {
+                LimpiarFormulario();
+            }
+
             this.Close();
         }
 
@@ -55,6 +58,11 @@ namespace FeelmwLogistika.Formularioak
 
         private void FEkintza_Load(object sender, EventArgs e)
         {
+            if (ekintzaEditatzen == null)
+            {
+                LimpiarFormulario();
+            }
+
             try
             {
                 this.LisEki = DatuakIrakurri.EkintzakListaratu();
@@ -83,6 +91,26 @@ namespace FeelmwLogistika.Formularioak
             cbxEkintza.Focus();
         }
 
+        private void LimpiarFormulario()
+        {
+            Eki = null;
+            cbxEkintza.Items.Clear();
+            cbxEkintza.SelectedIndex = -1;
+            cbxEkintza.Text = "";
+            txtBonoa.Clear();
+            txtIraupena.Clear();
+            txtKontaktua.Clear();
+            txtElkartokia.Clear();
+            txtIristean.Clear();
+            txtEramanM.Clear();
+            txtBertanM.Clear();
+            chkAldagela.Checked = false;
+            chkKomuna.Checked = false;
+            txtEgonlekua.Clear();
+            txtInfo.Clear();
+            txtLokali.Text = BalioLehenetsiak.Lokalizatzailea;
+        }
+
         private Ekintzak EkintzaSortu()
         {
             Ekintzak ekin = new Ekintzak(
@@ -97,9 +125,15 @@ namespace FeelmwLogistika.Formularioak
                 chkAldagela.Checked,
                 chkKomuna.Checked,
                 txtEgonlekua.Text,
-                txtInfo.Text
+                txtInfo.Text,
+                LokaliBalioa()
             );
             return ekin;
+        }
+
+        private string LokaliBalioa()
+        {
+            return string.IsNullOrWhiteSpace(txtLokali.Text) ? BalioLehenetsiak.Lokalizatzailea : txtLokali.Text;
         }
 
         private void btnGehitu_Click(object sender, EventArgs e)
@@ -148,6 +182,7 @@ namespace FeelmwLogistika.Formularioak
                     txtKontaktua.Text = ekintza.Kontaktua;
                     txtElkartokia.Text = ekintza.Elkartokia;
                     txtEgonlekua.Text = ekintza.Egonlekua;
+                    txtLokali.Text = ekintza.Lokali;
 
                     chkAldagela.Checked = ekintza.Aldagela;
                     chkKomuna.Checked = ekintza.Komuna;
@@ -169,6 +204,7 @@ namespace FeelmwLogistika.Formularioak
             chkKomuna.Checked = ekintza.Komuna;
             txtEgonlekua.Text = ekintza.Egonlekua;
             txtInfo.Text = ekintza.Informazioa;
+            txtLokali.Text = ekintza.Lokali;
         }
     }
 }

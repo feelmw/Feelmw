@@ -47,6 +47,8 @@ namespace FeelmwLogistika.Formularioak
             lblBertanM = new Label();
             lblEkintza = new Label();
             panel3 = new Panel();
+            lblLokali = new Label();
+            txtLokali = new TextBox();
             lblIristean = new Label();
             txtIristean = new TextBox();
             lblEgonlekua = new Label();
@@ -130,7 +132,7 @@ namespace FeelmwLogistika.Formularioak
             // 
             chkAldagela.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             chkAldagela.AutoSize = true;
-            chkAldagela.Location = new Point(65, 678);
+            chkAldagela.Location = new Point(65, 630);
             chkAldagela.Name = "chkAldagela";
             chkAldagela.Size = new Size(91, 24);
             chkAldagela.TabIndex = 5;
@@ -141,7 +143,7 @@ namespace FeelmwLogistika.Formularioak
             // 
             lblEramanM.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             lblEramanM.AutoSize = true;
-            lblEramanM.Location = new Point(31, 551);
+            lblEramanM.Location = new Point(31, 495);
             lblEramanM.Name = "lblEramanM";
             lblEramanM.Size = new Size(197, 20);
             lblEramanM.TabIndex = 33;
@@ -151,7 +153,7 @@ namespace FeelmwLogistika.Formularioak
             // 
             lblElkartokia.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             lblElkartokia.AutoSize = true;
-            lblElkartokia.Location = new Point(31, 293);
+            lblElkartokia.Location = new Point(31, 257);
             lblElkartokia.Name = "lblElkartokia";
             lblElkartokia.Size = new Size(74, 20);
             lblElkartokia.TabIndex = 32;
@@ -161,7 +163,7 @@ namespace FeelmwLogistika.Formularioak
             // 
             lblIraupena.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             lblIraupena.AutoSize = true;
-            lblIraupena.Location = new Point(31, 154);
+            lblIraupena.Location = new Point(31, 138);
             lblIraupena.Name = "lblIraupena";
             lblIraupena.Size = new Size(67, 20);
             lblIraupena.TabIndex = 31;
@@ -184,7 +186,7 @@ namespace FeelmwLogistika.Formularioak
             txtIraupena.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             txtIraupena.BorderStyle = BorderStyle.FixedSingle;
             txtIraupena.Font = new Font("Segoe UI", 10F);
-            txtIraupena.Location = new Point(30, 177);
+            txtIraupena.Location = new Point(30, 161);
             txtIraupena.Name = "txtIraupena";
             txtIraupena.Size = new Size(461, 30);
             txtIraupena.TabIndex = 1;
@@ -194,7 +196,7 @@ namespace FeelmwLogistika.Formularioak
             txtBertanM.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             txtBertanM.BorderStyle = BorderStyle.FixedSingle;
             txtBertanM.Font = new Font("Segoe UI", 10F);
-            txtBertanM.Location = new Point(31, 440);
+            txtBertanM.Location = new Point(31, 399);
             txtBertanM.Name = "txtBertanM";
             txtBertanM.Size = new Size(460, 30);
             txtBertanM.TabIndex = 3;
@@ -204,7 +206,7 @@ namespace FeelmwLogistika.Formularioak
             txtEramanM.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             txtEramanM.BorderStyle = BorderStyle.FixedSingle;
             txtEramanM.Font = new Font("Segoe UI", 10F);
-            txtEramanM.Location = new Point(31, 574);
+            txtEramanM.Location = new Point(31, 518);
             txtEramanM.Name = "txtEramanM";
             txtEramanM.Size = new Size(460, 30);
             txtEramanM.TabIndex = 4;
@@ -214,7 +216,7 @@ namespace FeelmwLogistika.Formularioak
             txtElkartokia.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             txtElkartokia.BorderStyle = BorderStyle.FixedSingle;
             txtElkartokia.Font = new Font("Segoe UI", 10F);
-            txtElkartokia.Location = new Point(31, 316);
+            txtElkartokia.Location = new Point(31, 280);
             txtElkartokia.Name = "txtElkartokia";
             txtElkartokia.Size = new Size(460, 30);
             txtElkartokia.TabIndex = 2;
@@ -223,7 +225,7 @@ namespace FeelmwLogistika.Formularioak
             // 
             chkKomuna.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             chkKomuna.AutoSize = true;
-            chkKomuna.Location = new Point(331, 678);
+            chkKomuna.Location = new Point(331, 630);
             chkKomuna.Name = "chkKomuna";
             chkKomuna.Size = new Size(93, 24);
             chkKomuna.TabIndex = 6;
@@ -234,7 +236,7 @@ namespace FeelmwLogistika.Formularioak
             // 
             lblBertanM.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             lblBertanM.AutoSize = true;
-            lblBertanM.Location = new Point(31, 417);
+            lblBertanM.Location = new Point(31, 376);
             lblBertanM.Name = "lblBertanM";
             lblBertanM.Size = new Size(193, 20);
             lblBertanM.TabIndex = 3;
@@ -253,6 +255,8 @@ namespace FeelmwLogistika.Formularioak
             // panel3
             // 
             panel3.BackColor = Color.White;
+            panel3.Controls.Add(lblLokali);
+            panel3.Controls.Add(txtLokali);
             panel3.Controls.Add(lblIristean);
             panel3.Controls.Add(txtIristean);
             panel3.Controls.Add(lblEgonlekua);
@@ -272,12 +276,33 @@ namespace FeelmwLogistika.Formularioak
             panel3.Padding = new Padding(20);
             panel3.Size = new Size(530, 756);
             panel3.TabIndex = 1;
-            // 
+            //
+            // lblLokali
+            //
+            lblLokali.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            lblLokali.AutoSize = true;
+            lblLokali.Location = new Point(28, 138);
+            lblLokali.Name = "lblLokali";
+            lblLokali.Size = new Size(111, 20);
+            lblLokali.TabIndex = 33;
+            lblLokali.Text = "Lokalizatzailea";
+            //
+            // txtLokali
+            //
+            txtLokali.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            txtLokali.BorderStyle = BorderStyle.FixedSingle;
+            txtLokali.Font = new Font("Segoe UI", 10F);
+            txtLokali.Location = new Point(28, 161);
+            txtLokali.Name = "txtLokali";
+            txtLokali.Size = new Size(461, 30);
+            txtLokali.TabIndex = 8;
+            txtLokali.Text = "Feelmw";
+            //
             // lblIristean
-            // 
+            //
             lblIristean.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             lblIristean.AutoSize = true;
-            lblIristean.Location = new Point(28, 154);
+            lblIristean.Location = new Point(28, 257);
             lblIristean.Name = "lblIristean";
             lblIristean.Size = new Size(57, 20);
             lblIristean.TabIndex = 31;
@@ -288,16 +313,16 @@ namespace FeelmwLogistika.Formularioak
             txtIristean.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             txtIristean.BorderStyle = BorderStyle.FixedSingle;
             txtIristean.Font = new Font("Segoe UI", 10F);
-            txtIristean.Location = new Point(28, 177);
+            txtIristean.Location = new Point(28, 280);
             txtIristean.Name = "txtIristean";
             txtIristean.Size = new Size(461, 30);
-            txtIristean.TabIndex = 8;
+            txtIristean.TabIndex = 9;
             // 
             // lblEgonlekua
             // 
             lblEgonlekua.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             lblEgonlekua.AutoSize = true;
-            lblEgonlekua.Location = new Point(28, 552);
+            lblEgonlekua.Location = new Point(28, 590);
             lblEgonlekua.Name = "lblEgonlekua";
             lblEgonlekua.Size = new Size(78, 20);
             lblEgonlekua.TabIndex = 32;
@@ -308,10 +333,10 @@ namespace FeelmwLogistika.Formularioak
             txtEgonlekua.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             txtEgonlekua.BorderStyle = BorderStyle.FixedSingle;
             txtEgonlekua.Font = new Font("Segoe UI", 10F);
-            txtEgonlekua.Location = new Point(28, 575);
+            txtEgonlekua.Location = new Point(28, 613);
             txtEgonlekua.Name = "txtEgonlekua";
             txtEgonlekua.Size = new Size(461, 30);
-            txtEgonlekua.TabIndex = 11;
+            txtEgonlekua.TabIndex = 12;
             // 
             // btnIrten
             // 
@@ -325,7 +350,7 @@ namespace FeelmwLogistika.Formularioak
             btnIrten.Location = new Point(375, 658);
             btnIrten.Name = "btnIrten";
             btnIrten.Size = new Size(118, 33);
-            btnIrten.TabIndex = 14;
+            btnIrten.TabIndex = 15;
             btnIrten.Text = "🚪 Irten";
             btnIrten.UseVisualStyleBackColor = false;
             btnIrten.Click += btnIrten_Click;
@@ -342,7 +367,7 @@ namespace FeelmwLogistika.Formularioak
             btnGehitu.Location = new Point(183, 658);
             btnGehitu.Name = "btnGehitu";
             btnGehitu.Size = new Size(151, 33);
-            btnGehitu.TabIndex = 13;
+            btnGehitu.TabIndex = 14;
             btnGehitu.Text = "💾 Berria Gehitu";
             btnGehitu.UseVisualStyleBackColor = false;
             btnGehitu.Click += btnGehitu_Click;
@@ -359,7 +384,7 @@ namespace FeelmwLogistika.Formularioak
             btnGorde.Location = new Point(23, 658);
             btnGorde.Name = "btnGorde";
             btnGorde.Size = new Size(118, 33);
-            btnGorde.TabIndex = 12;
+            btnGorde.TabIndex = 13;
             btnGorde.Text = "💾 Gorde";
             btnGorde.UseVisualStyleBackColor = false;
             btnGorde.Click += btnGorde_Click;
@@ -388,7 +413,7 @@ namespace FeelmwLogistika.Formularioak
             // 
             lblInfo.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             lblInfo.AutoSize = true;
-            lblInfo.Location = new Point(28, 293);
+            lblInfo.Location = new Point(28, 376);
             lblInfo.Name = "lblInfo";
             lblInfo.Size = new Size(89, 20);
             lblInfo.TabIndex = 3;
@@ -399,16 +424,16 @@ namespace FeelmwLogistika.Formularioak
             txtInfo.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             txtInfo.BorderStyle = BorderStyle.FixedSingle;
             txtInfo.Font = new Font("Segoe UI", 10F);
-            txtInfo.Location = new Point(28, 316);
+            txtInfo.Location = new Point(28, 399);
             txtInfo.Name = "txtInfo";
             txtInfo.Size = new Size(460, 30);
-            txtInfo.TabIndex = 9;
+            txtInfo.TabIndex = 10;
             // 
             // lblKontaktua
             // 
             lblKontaktua.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             lblKontaktua.AutoSize = true;
-            lblKontaktua.Location = new Point(28, 417);
+            lblKontaktua.Location = new Point(28, 495);
             lblKontaktua.Name = "lblKontaktua";
             lblKontaktua.Size = new Size(76, 20);
             lblKontaktua.TabIndex = 3;
@@ -419,10 +444,10 @@ namespace FeelmwLogistika.Formularioak
             txtKontaktua.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             txtKontaktua.BorderStyle = BorderStyle.FixedSingle;
             txtKontaktua.Font = new Font("Segoe UI", 10F);
-            txtKontaktua.Location = new Point(28, 440);
+            txtKontaktua.Location = new Point(28, 518);
             txtKontaktua.Name = "txtKontaktua";
             txtKontaktua.Size = new Size(461, 30);
-            txtKontaktua.TabIndex = 10;
+            txtKontaktua.TabIndex = 11;
             // 
             // FEkintza
             // 
@@ -478,5 +503,7 @@ namespace FeelmwLogistika.Formularioak
         private TextBox txtIristean;
         private Label lblEgonlekua;
         private TextBox txtEgonlekua;
+        private Label lblLokali;
+        private TextBox txtLokali;
     }
 }

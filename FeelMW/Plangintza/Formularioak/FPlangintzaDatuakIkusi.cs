@@ -44,7 +44,7 @@ namespace FeelmwLogistika.Plangintza.Formularioak
             Panel edukia = new Panel
             {
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
-                BackColor = Color.White,
+                BackColor = AppEstiloa.Txartela,
                 Location = new Point(49, 92),
                 Padding = new Padding(24),
                 Size = new Size(1080, 620)
@@ -111,20 +111,8 @@ namespace FeelmwLogistika.Plangintza.Formularioak
 
         private Button BotoiaSortu(string testua, Color kolorea, Point kokapena)
         {
-            Button botoia = new Button
-            {
-                BackColor = kolorea,
-                Cursor = Cursors.Hand,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold),
-                ForeColor = Color.White,
-                Location = kokapena,
-                Size = new Size(120, 36),
-                Text = testua,
-                UseVisualStyleBackColor = false
-            };
-            botoia.FlatAppearance.BorderSize = 0;
-            return botoia;
+            Color hoverKolorea = kolorea == AppEstiloa.Gorria ? AppEstiloa.GorriaHover : AppEstiloa.UrdinaHover;
+            return AppEstiloa.BotoiaSortu(testua, kolorea, hoverKolorea, kokapena, new Size(120, 36));
         }
 
         private void DatuakKargatu()

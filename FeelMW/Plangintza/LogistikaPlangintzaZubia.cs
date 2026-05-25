@@ -12,6 +12,12 @@ namespace FeelmwLogistika.Plangintza
 
         public static IReadOnlyList<Bidaiak> SortutakoBidaiak => sortutakoBidaiak;
 
+        public static void Garbitu()
+        {
+            logistikaOstalak.Clear();
+            sortutakoBidaiak.Clear();
+        }
+
         public static void OstalaGorde(Ostalak? ostala)
         {
             if (ostala == null || string.IsNullOrWhiteSpace(ostala.OstalaIzena))

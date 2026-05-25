@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using FeelmwLogistika;
+
 namespace FeelmwLogistika.Logistika.DatuModeloak
 {
     public class Ekintzak
@@ -23,6 +25,7 @@ namespace FeelmwLogistika.Logistika.DatuModeloak
 
         private string egonlekua;
         private string informazioa;
+        private string lokali = BalioLehenetsiak.Lokalizatzailea;
 
         // GET - SET
         public string EkintzaIzena { get => ekintzaIzena; set => ekintzaIzena = value; }
@@ -39,11 +42,12 @@ namespace FeelmwLogistika.Logistika.DatuModeloak
 
         public string Egonlekua { get => egonlekua; set => egonlekua = value; }
         public string Informazioa { get => informazioa; set => informazioa = value; }
+        public string Lokali { get => lokali; set => lokali = string.IsNullOrWhiteSpace(value) ? BalioLehenetsiak.Lokalizatzailea : value; }
 
         // CONSTRUCTOR
 
         public Ekintzak(
-            string e, string b, string i, string k, string el, string ir, string er, string be, bool a, bool ko, string eg, string info)
+            string e, string b, string i, string k, string el, string ir, string er, string be, bool a, bool ko, string eg, string info, string lo = BalioLehenetsiak.Lokalizatzailea)
         {
             ekintzaIzena = e;
             bonoa = b;
@@ -59,6 +63,7 @@ namespace FeelmwLogistika.Logistika.DatuModeloak
 
             egonlekua = eg;
             informazioa = info;
+            Lokali = lo;
         }
     }
 }

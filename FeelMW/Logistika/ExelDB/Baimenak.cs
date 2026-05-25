@@ -8,8 +8,8 @@ namespace FeelmwLogistika.Logistika.ExelDB
 {
     public static class Baimenak
     {
-        public static SheetsService service;
-        public static GoogleCredential credential;// 👈 IMPORTANTE
+        public static SheetsService service = null!;
+        public static GoogleCredential credential = null!;// 👈 IMPORTANTE
 
         public static void Autentikazioa()
         {
@@ -33,15 +33,10 @@ namespace FeelmwLogistika.Logistika.ExelDB
                 throw new FileNotFoundException("Ez da aurkitu Google Sheets kredentzialen fitxategia.", credentialPath);
             }
 
-            using (var stream = new FileStream(
-                credentialPath,
-                FileMode.Open,
-                FileAccess.Read))
-            {
-                credential = GoogleCredential
-                    .FromStream(stream)
-                    .CreateScoped(scopes);
-            }
+            credential = CredentialFactory
+                .FromFile<ServiceAccountCredential>(credentialPath)
+                .ToGoogleCredential()
+                .CreateScoped(scopes);
 
             service = new SheetsService(new BaseClientService.Initializer()
             {

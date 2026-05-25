@@ -18,7 +18,7 @@ namespace FeelmwLogistika.Formularioak
             this.lisGar = lisGar;
             this.panela = panela;
 
-            BackColor = Color.FromArgb(245, 246, 250);
+            BackColor = AppEstiloa.Fondoa;
             Font = new Font("Segoe UI", 10F);
             FormBorderStyle = FormBorderStyle.None;
             Dock = DockStyle.Fill;
@@ -36,8 +36,8 @@ namespace FeelmwLogistika.Formularioak
             Panel edukia = new Panel
             {
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
-                BackColor = Color.White,
-                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = AppEstiloa.Txartela,
+                BorderStyle = BorderStyle.None,
                 Location = new Point(49, 92),
                 Padding = new Padding(24),
                 Size = new Size(1080, 620)
@@ -78,7 +78,7 @@ namespace FeelmwLogistika.Formularioak
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
                 BackgroundColor = Color.White,
-                BorderStyle = BorderStyle.FixedSingle,
+                BorderStyle = BorderStyle.None,
                 ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize,
                 Location = new Point(24, 106),
                 MultiSelect = false,
@@ -106,27 +106,8 @@ namespace FeelmwLogistika.Formularioak
 
         private Button BotoiaSortu(string testua, Color kolorea, Point kokapena)
         {
-            Button botoia = new Button
-            {
-                BackColor = kolorea,
-                Cursor = Cursors.Hand,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI Semibold", 10F),
-                ForeColor = Color.White,
-                Location = kokapena,
-                Size = new Size(120, 36),
-                Text = testua,
-                UseVisualStyleBackColor = false
-            };
-            botoia.FlatAppearance.BorderSize = 0;
-            botoia.MouseEnter += (s, e) => botoia.BackColor = Ilundu(kolorea);
-            botoia.MouseLeave += (s, e) => botoia.BackColor = kolorea;
-            return botoia;
-        }
-
-        private Color Ilundu(Color kolorea)
-        {
-            return Color.FromArgb(Math.Max(0, kolorea.R - 25), Math.Max(0, kolorea.G - 25), Math.Max(0, kolorea.B - 25));
+            Color hoverKolorea = kolorea == AppEstiloa.Gorria ? AppEstiloa.GorriaHover : AppEstiloa.UrdinaHover;
+            return AppEstiloa.BotoiaSortu(testua, kolorea, hoverKolorea, kokapena, new Size(120, 36));
         }
 
         private void DatuakKargatu()
@@ -266,6 +247,7 @@ namespace FeelmwLogistika.Formularioak
             form.FormClosed += (s, e) =>
             {
                 itxitakoan();
+                panela.Controls.Remove(form);
                 Close();
             };
         }
@@ -309,6 +291,7 @@ namespace FeelmwLogistika.Formularioak
             helburua.Komuna = berria.Komuna;
             helburua.Egonlekua = berria.Egonlekua;
             helburua.Informazioa = berria.Informazioa;
+            helburua.Lokali = berria.Lokali;
         }
 
         private void GarraioaEguneratu(Garraioak helburua, Garraioak berria)

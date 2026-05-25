@@ -10,7 +10,7 @@ namespace FeelmwLogistika.Plangintza.DatuModeloak
     public class Bidaiak
     {
         private List<Hotelak> hotela;
-        private List<Egunak> eguna;
+        private List<Egunak> eguna = new List<Egunak>();
         private int egunKop;
         private Hotelak? hotelHautatua;
         private List<ExelaSortu.EgunLaburpena> egunLaburpenak = new List<ExelaSortu.EgunLaburpena>();

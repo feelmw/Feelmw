@@ -12,6 +12,7 @@ namespace FeelmwLogistika
         public static readonly Color BerdeaHover = Color.FromArgb(21, 128, 61);
         public static readonly Color Gorria = Color.FromArgb(220, 38, 38);
         public static readonly Color GorriaHover = Color.FromArgb(185, 28, 28);
+        public static readonly Color NeutroHover = Color.FromArgb(248, 250, 252);
 
         public static void Aplikatu(Form form)
         {
@@ -107,8 +108,60 @@ namespace FeelmwLogistika
             {
                 button.BackColor = Color.White;
                 button.ForeColor = TestuNagusia;
-                button.FlatAppearance.MouseOverBackColor = Color.FromArgb(248, 250, 252);
+                button.FlatAppearance.MouseOverBackColor = NeutroHover;
             }
+        }
+
+        public static void BotoiNagusia(Button button)
+        {
+            BotoiaEstilatu(button, Urdina, UrdinaHover, Color.White);
+        }
+
+        public static void BotoiGorde(Button button)
+        {
+            BotoiNagusia(button);
+        }
+
+        public static void BotoiGehitu(Button button)
+        {
+            BotoiaEstilatu(button, Berdea, BerdeaHover, Color.White);
+        }
+
+        public static void BotoiIrten(Button button)
+        {
+            BotoiaEstilatu(button, Gorria, GorriaHover, Color.White);
+        }
+
+        public static void BotoiNeutro(Button button)
+        {
+            BotoiaEstilatu(button, Color.White, NeutroHover, TestuNagusia);
+        }
+
+        public static Button BotoiaSortu(string testua, Color kolorea, Color hoverKolorea, Point kokapena, Size neurria)
+        {
+            Button button = new Button
+            {
+                Location = kokapena,
+                Size = neurria,
+                Text = testua,
+                UseVisualStyleBackColor = false
+            };
+            BotoiaEstilatu(button, kolorea, hoverKolorea, Color.White);
+            return button;
+        }
+
+        private static void BotoiaEstilatu(Button button, Color kolorea, Color hoverKolorea, Color testuKolorea)
+        {
+            button.BackColor = kolorea;
+            button.Cursor = Cursors.Hand;
+            button.FlatStyle = FlatStyle.Flat;
+            button.FlatAppearance.BorderSize = 0;
+            button.FlatAppearance.MouseOverBackColor = hoverKolorea;
+            button.Font = new Font("Segoe UI Semibold", Math.Max(10F, button.Font.Size), FontStyle.Bold);
+            button.ForeColor = testuKolorea;
+            button.UseVisualStyleBackColor = false;
+            button.MouseEnter += (s, e) => button.BackColor = hoverKolorea;
+            button.MouseLeave += (s, e) => button.BackColor = kolorea;
         }
 
         private static void PanelaAplikatu(Panel panel)
