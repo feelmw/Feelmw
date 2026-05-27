@@ -120,7 +120,7 @@
             State.Ostalak.Add(ostala);
         }
 
-        Nav.NavigateTo("/logistika");
+        Nav.NavigateTo("logistika");
     }
 
     private async Task AddToExcelAsync()
@@ -139,7 +139,7 @@
         Ostalak ostala = CreateOstala();
         await DataService.AddOstalaAsync(ostala);
         State.Ostalak.Add(ostala);
-        Nav.NavigateTo("/logistika");
+        Nav.NavigateTo("logistika");
     }
 
     private bool Validate()
@@ -163,7 +163,7 @@
         dataHasiera = DateTime.Today;
         dataAmaiera = DateTime.Today;
         error = null;
-        Nav.NavigateTo("/logistika");
+        Nav.NavigateTo("logistika");
     }
 
     private Ostalak CreateOstala()

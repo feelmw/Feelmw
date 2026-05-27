@@ -72,12 +72,12 @@
             if (kind == "Logistika")
             {
                 await LoadLogistikaAsync(memory, fileName);
-                Nav.NavigateTo("/logistika/datuak");
+                Nav.NavigateTo("logistika/datuak");
                 return;
             }
 
             LoadPlangintza(memory, fileName);
-            Nav.NavigateTo("/plangintza/datuak");
+            Nav.NavigateTo("plangintza/datuak");
         }
         catch (IOException ex)
         {

@@ -1,17 +1,20 @@
 /* /Components/Layout/MainLayout.razor.rz.scp.css */
 .page[b-p1v5ej5gkv] {
-    position: relative;
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
+    position: relative;
 }
 
 main[b-p1v5ej5gkv] {
     flex: 1;
+    min-width: 0;
 }
 
 .sidebar[b-p1v5ej5gkv] {
     background: #111;
     border-right: 1px solid #2b2b2b;
+    flex-shrink: 0;
 }
 
 @media (min-width: 641px) {
@@ -20,15 +23,14 @@ main[b-p1v5ej5gkv] {
     }
 
     .sidebar[b-p1v5ej5gkv] {
-        width: 250px;
+        width: 188px;
         height: 100vh;
         position: sticky;
         top: 0;
     }
 
-    article[b-p1v5ej5gkv] {
-        padding-left: 2rem !important;
-        padding-right: 1.5rem !important;
+    article.content[b-p1v5ej5gkv] {
+        padding: 1rem 1.25rem 1.5rem;
     }
 }
 
@@ -71,12 +73,12 @@ main[b-p1v5ej5gkv] {
 .top-row[b-6od0n03q47] {
     background: #0a0a0a;
     border-bottom: 1px solid #2c2c2c;
-    height: 4.2rem;
+    height: 3.35rem;
 }
 
 .navbar-brand[b-6od0n03q47] {
     color: #fff;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 700;
     letter-spacing: 0;
 }
@@ -104,27 +106,28 @@ main[b-p1v5ej5gkv] {
 }
 
 .nav-item[b-6od0n03q47] {
-    font-size: 0.9rem;
-    padding-bottom: 0.5rem;
+    font-size: 0.86rem;
+    padding: 0 .6rem .3rem;
 }
 
     .nav-item:first-of-type[b-6od0n03q47] {
-        padding-top: 1rem;
+        padding-top: .65rem;
     }
 
     .nav-item:last-of-type[b-6od0n03q47] {
-        padding-bottom: 1rem;
+        padding-bottom: .75rem;
     }
 
     .nav-item[b-6od0n03q47]  .nav-link {
         color: #cfcfcf;
         background: none;
         border: none;
-        border-radius: 6px;
-        height: 3rem;
+        border-radius: 5px;
+        height: 2.35rem;
         display: flex;
         align-items: center;
-        line-height: 3rem;
+        line-height: 1.1;
+        padding: 0 .75rem;
         width: 100%;
     }
 
@@ -152,11 +155,8 @@ main[b-p1v5ej5gkv] {
     }
 
     .nav-scrollable[b-6od0n03q47] {
-        /* Never collapse the sidebar for wide screens */
         display: block;
-
-        /* Allow sidebar to scroll for tall menus */
-        height: calc(100vh - 4.2rem);
+        height: calc(100vh - 3.35rem);
         overflow-y: auto;
     }
 }

@@ -102,7 +102,7 @@
     <div class="actions left">
         <button class="btn btn-outline-primary" @onclick="AddActivity">+ Ekintza</button>
         <button class="btn btn-primary" @onclick="Save">Zerrendara gehitu</button>
-        <button class="btn btn-secondary" @onclick="@(() => Nav.NavigateTo("/plangintza"))">Itzuli</button>
+        <button class="btn btn-secondary" @onclick="@(() => Nav.NavigateTo("plangintza"))">Itzuli</button>
     </div>
 </div>
 
@@ -273,7 +273,7 @@
             State.UpsertBidaia(bidaia);
         }
 
-        Nav.NavigateTo("/plangintza");
+        Nav.NavigateTo("plangintza");
     }
 
     private void Load(Bidaiak bidaia)

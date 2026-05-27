@@ -110,7 +110,7 @@
             State.Ekintzak.Add(ekintza);
         }
 
-        Nav.NavigateTo("/logistika");
+        Nav.NavigateTo("logistika");
     }
 
     private async Task AddToExcelAsync()
@@ -129,7 +129,7 @@
         Ekintzak ekintza = CreateEkintza();
         await DataService.AddEkintzaAsync(ekintza);
         State.Ekintzak.Add(ekintza);
-        Nav.NavigateTo("/logistika");
+        Nav.NavigateTo("logistika");
     }
 
     private bool Validate()
@@ -149,7 +149,7 @@
     {
         model = NewEkintza();
         error = null;
-        Nav.NavigateTo("/logistika");
+        Nav.NavigateTo("logistika");
     }
 
     private Ekintzak CreateEkintza()

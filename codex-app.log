@@ -8,6 +8,3 @@ info: Microsoft.Hosting.Lifetime[0]
       Hosting environment: Development
 info: Microsoft.Hosting.Lifetime[0]
       Content root path: C:\Users\mikel\Escritorio\FeelMW
-warn: Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware[3]
-      Failed to determine the https port for redirect.
-Editatu: archivo recibido 'Logistika - MyFeelLogistika.xlsx' (8455 bytes), tipo Logistika.

@@ -13,7 +13,7 @@
         <option>Egunak</option>
         <option>Ekintzak</option>
     </select>
-    <button class="btn btn-secondary" @onclick="@(() => Nav.NavigateTo("/plangintza"))">Itzuli</button>
+    <button class="btn btn-secondary" @onclick="@(() => Nav.NavigateTo("plangintza"))">Itzuli</button>
 </div>
 
 <table class="table data-table">
@@ -86,7 +86,7 @@
 
     private void Edit(DataRow row)
     {
-        Nav.NavigateTo($"/plangintza/bidaia?index={row.BidaiaIndex}");
+        Nav.NavigateTo($"plangintza/bidaia?index={row.BidaiaIndex}");
     }
 
     private void Delete(DataRow row)
