@@ -1,0 +1,118 @@
+@page "/plangintza/datuak"
+@inject PlangintzaWorkflowState State
+@inject NavigationManager Nav
+
+<PageTitle>FeelMW - Plangintza Datuak</PageTitle>
+
+<SectionHeader Title="Plangintza datuak" Subtitle="Hotelak, egunak eta ekintzak" />
+
+<div class="toolbar">
+    <select class="form-select" @bind="filter">
+        <option>Guztiak</option>
+        <option>Hotelak</option>
+        <option>Egunak</option>
+        <option>Ekintzak</option>
+    </select>
+    <button class="btn btn-secondary" @onclick="@(() => Nav.NavigateTo("/plangintza"))">Itzuli</button>
+</div>
+
+<table class="table data-table">
+    <thead>
+        <tr>
+            <th>Mota</th>
+            <th>Izena / Eguna</th>
+            <th>Data / Ordua</th>
+            <th>Xehetasuna</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (DataRow row in Rows)
+        {
+            <tr>
+                <td>@row.Mota</td>
+                <td>@row.Izena</td>
+                <td>@row.DataOrdua</td>
+                <td>@row.Xehetasuna</td>
+                <td class="table-actions">
+                    <button class="btn btn-sm btn-outline-primary" @onclick="() => Edit(row)">Editatu</button>
+                    <button class="btn btn-sm btn-outline-danger" @onclick="() => Delete(row)">Ezabatu</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (!Rows.Any())
+{
+    <EmptyState Title="Daturik ez" Message="Oraindik ez da Plangintzako daturik gehitu." />
+}
+
+@code {
+    private string filter = "Guztiak";
+
+    private IEnumerable<DataRow> Rows
+    {
+        get
+        {
+            for (int i = 0; i < State.Bidaiak.Count; i++)
+            {
+                Bidaiak bidaia = State.Bidaiak[i];
+                if (filter is "Guztiak" or "Hotelak")
+                {
+                    yield return new DataRow("Hotela", bidaia.HotelHautatua?.Izena ?? "", bidaia.EgunKop.ToString(), bidaia.HotelHautatua?.Hiria ?? "", i, -1);
+                }
+
+                if (filter is "Guztiak" or "Egunak")
+                {
+                    for (int e = 0; e < bidaia.EgunLaburpenak.Count; e++)
+                    {
+                        EgunLaburpena eguna = bidaia.EgunLaburpenak[e];
+                        yield return new DataRow("Eguna", eguna.Eguna.ToString(), eguna.Data, $"G: {eguna.Goisa} | A: {eguna.Arratsaldea} | Ga: {eguna.Gaua}", i, e);
+                    }
+                }
+
+                if (filter is "Guztiak" or "Ekintzak")
+                {
+                    for (int a = 0; a < bidaia.EkintzaDatuak.Count; a++)
+                    {
+                        EkintzaDatuak ekintza = bidaia.EkintzaDatuak[a];
+                        yield return new DataRow("Ekintza", ekintza.Eguna, ekintza.Ordua, $"{ekintza.Mota}: {ekintza.Deskribapena}", i, a);
+                    }
+                }
+            }
+        }
+    }
+
+    private void Edit(DataRow row)
+    {
+        Nav.NavigateTo($"/plangintza/bidaia?index={row.BidaiaIndex}");
+    }
+
+    private void Delete(DataRow row)
+    {
+        if (row.BidaiaIndex < 0 || row.BidaiaIndex >= State.Bidaiak.Count)
+        {
+            return;
+        }
+
+        Bidaiak bidaia = State.Bidaiak[row.BidaiaIndex];
+        if (row.Mota == "Hotela")
+        {
+            State.Bidaiak.RemoveAt(row.BidaiaIndex);
+        }
+        else if (row.Mota == "Eguna" && row.ItemIndex >= 0 && row.ItemIndex < bidaia.EgunLaburpenak.Count)
+        {
+            EgunLaburpena eguna = bidaia.EgunLaburpenak[row.ItemIndex];
+            bidaia.EgunLaburpenak.RemoveAt(row.ItemIndex);
+            bidaia.EgunKop = Math.Max(1, bidaia.EgunLaburpenak.Count);
+            bidaia.EkintzaDatuak.RemoveAll(e => e.Eguna == eguna.Data || e.Eguna == $"{eguna.Eguna}. eguna" || e.Eguna == $"Eguna{eguna.Eguna}");
+        }
+        else if (row.Mota == "Ekintza" && row.ItemIndex >= 0 && row.ItemIndex < bidaia.EkintzaDatuak.Count)
+        {
+            bidaia.EkintzaDatuak.RemoveAt(row.ItemIndex);
+        }
+    }
+
+    private sealed record DataRow(string Mota, string Izena, string DataOrdua, string Xehetasuna, int BidaiaIndex, int ItemIndex);
+}

@@ -1,0 +1,194 @@
+@page "/logistika/ekintza"
+@inject LogistikaWorkflowState State
+@inject ILogistikaDataService DataService
+@inject NavigationManager Nav
+
+<PageTitle>FeelMW - Logistika Ekintza</PageTitle>
+
+<SectionHeader Title="@Title" Subtitle="Ekintza gehitu edo editatu" />
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+<EditForm Model="model" OnSubmit="Save">
+    <div class="data-form">
+        <div class="form-grid">
+            <label>
+                Ekintza
+                <InputSelect class="form-select" Value="@model.EkintzaIzena" ValueChanged="@((string? value) => OnEkintzaChanged(value))" ValueExpression="@(() => model.EkintzaIzena)">
+                    <option value="">Aukeratu ekintza</option>
+                    @foreach (Ekintzak item in presets)
+                    {
+                        <option value="@item.EkintzaIzena">@item.EkintzaIzena</option>
+                    }
+                </InputSelect>
+            </label>
+            <label>Bonoa <input class="form-control" @bind="model.Bonoa" @bind:event="oninput" /></label>
+            <label>Iraupena <input class="form-control" @bind="model.Iraupena" @bind:event="oninput" /></label>
+            <label>Kontaktua <input class="form-control" @bind="model.Kontaktua" @bind:event="oninput" /></label>
+            <label>Elkartokia <input class="form-control" @bind="model.Elkartokia" @bind:event="oninput" /></label>
+            <label>Iristean <input class="form-control" @bind="model.Iristean" @bind:event="oninput" /></label>
+            <label>EramanM <input class="form-control" @bind="model.EramanM" @bind:event="oninput" /></label>
+            <label>BertanM <input class="form-control" @bind="model.BertanM" @bind:event="oninput" /></label>
+            <label>Egonlekua <input class="form-control" @bind="model.Egonlekua" @bind:event="oninput" /></label>
+            <label>Informazioa <input class="form-control" @bind="model.Informazioa" @bind:event="oninput" /></label>
+            <label>Lokali <input class="form-control" @bind="model.Lokali" @bind:event="oninput" /></label>
+        </div>
+        <div class="checks">
+            <label><InputCheckbox @bind-Value="model.Aldagela" /> Aldagela</label>
+            <label><InputCheckbox @bind-Value="model.Komuna" /> Komuna</label>
+        </div>
+        <div class="actions left">
+            <button class="btn btn-primary" type="submit">Gorde</button>
+            @if (!editing)
+            {
+                <button class="btn btn-outline-primary" type="button" @onclick="AddToExcelAsync">Gehitu</button>
+            }
+            <button class="btn btn-secondary" type="button" @onclick="Exit">Irten</button>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int? Index { get; set; }
+
+    private Ekintzak model = NewEkintza();
+    private List<Ekintzak> presets = [];
+    private string? error;
+    private bool editing;
+    private string Title => editing ? "Ekintza editatu" : "Ekintza gehitu";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            presets = (await DataService.ReadEkintzakAsync())
+                .Where(e => !string.IsNullOrWhiteSpace(e.EkintzaIzena))
+                .GroupBy(e => e.EkintzaIzena.Trim(), StringComparer.OrdinalIgnoreCase)
+                .Select(g => g.First())
+                .ToList();
+        }
+        catch
+        {
+            presets = [];
+        }
+
+        if (Index is >= 0 && Index < State.Ekintzak.Count)
+        {
+            editing = true;
+            Copy(State.Ekintzak[Index.Value], model);
+        }
+    }
+
+    private void OnEkintzaChanged(string? value)
+    {
+        model.EkintzaIzena = value ?? "";
+        Ekintzak? selected = presets.FirstOrDefault(e => string.Equals(e.EkintzaIzena, model.EkintzaIzena, StringComparison.OrdinalIgnoreCase));
+        if (selected is not null)
+        {
+            Copy(selected, model);
+        }
+    }
+
+    private void Save()
+    {
+        if (!Validate())
+        {
+            return;
+        }
+
+        Ekintzak ekintza = CreateEkintza();
+        if (editing && Index is >= 0 && Index < State.Ekintzak.Count)
+        {
+            State.Ekintzak[Index.Value] = ekintza;
+        }
+        else
+        {
+            State.Ekintzak.Add(ekintza);
+        }
+
+        Nav.NavigateTo("/logistika");
+    }
+
+    private async Task AddToExcelAsync()
+    {
+        if (!Validate())
+        {
+            return;
+        }
+
+        if (presets.Any(e => string.Equals(e.EkintzaIzena, model.EkintzaIzena, StringComparison.OrdinalIgnoreCase)))
+        {
+            error = "Izen hori duen ekintza bat dagoeneko existitzen da.";
+            return;
+        }
+
+        Ekintzak ekintza = CreateEkintza();
+        await DataService.AddEkintzaAsync(ekintza);
+        State.Ekintzak.Add(ekintza);
+        Nav.NavigateTo("/logistika");
+    }
+
+    private bool Validate()
+    {
+        if (string.IsNullOrWhiteSpace(model.EkintzaIzena))
+        {
+            error = "Ekintzak izen bat behar du.";
+            return false;
+        }
+
+        error = null;
+        model.Lokali = string.IsNullOrWhiteSpace(model.Lokali) ? BalioLehenetsiak.Lokalizatzailea : model.Lokali;
+        return true;
+    }
+
+    private void Exit()
+    {
+        model = NewEkintza();
+        error = null;
+        Nav.NavigateTo("/logistika");
+    }
+
+    private Ekintzak CreateEkintza()
+    {
+        return new Ekintzak(
+            model.EkintzaIzena,
+            model.Bonoa,
+            model.Iraupena,
+            model.Kontaktua,
+            model.Elkartokia,
+            model.Iristean,
+            model.EramanM,
+            model.BertanM,
+            model.Aldagela,
+            model.Komuna,
+            model.Egonlekua,
+            model.Informazioa,
+            model.Lokali);
+    }
+
+    private static Ekintzak NewEkintza()
+    {
+        return new Ekintzak { Lokali = BalioLehenetsiak.Lokalizatzailea };
+    }
+
+    private static void Copy(Ekintzak source, Ekintzak target)
+    {
+        target.EkintzaIzena = source.EkintzaIzena;
+        target.Bonoa = source.Bonoa;
+        target.Iraupena = source.Iraupena;
+        target.Kontaktua = source.Kontaktua;
+        target.Elkartokia = source.Elkartokia;
+        target.Iristean = source.Iristean;
+        target.EramanM = source.EramanM;
+        target.BertanM = source.BertanM;
+        target.Aldagela = source.Aldagela;
+        target.Komuna = source.Komuna;
+        target.Egonlekua = source.Egonlekua;
+        target.Informazioa = source.Informazioa;
+        target.Lokali = string.IsNullOrWhiteSpace(source.Lokali) ? BalioLehenetsiak.Lokalizatzailea : source.Lokali;
+    }
+}

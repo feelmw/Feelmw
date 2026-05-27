@@ -1,0 +1,20 @@
+@page "/dokumentua-final"
+@inject IDocumentTemplateService TemplateService
+@inject IDocumentWorkflowService WorkflowService
+
+<PageTitle>FeelMW - Dokumentua</PageTitle>
+
+<SectionHeader Title="Crear documento final desde plantilla" Subtitle="Infraestructura preparada para plantillas" />
+
+<div class="action-panel">
+    <p>Preparado para crear el documento final desde plantilla cuando se migre la logica original.</p>
+    <button class="btn btn-primary" @onclick="CrearAsync">Crear documento final</button>
+</div>
+
+@code {
+    private async Task CrearAsync()
+    {
+        await TemplateService.CreateDocumentFromTemplateAsync();
+        await WorkflowService.CreateFinalDocumentFromTemplateAsync();
+    }
+}

@@ -1,0 +1,12 @@
+<div class="empty-state">
+    <strong>@Title</strong>
+    <span>@Message</span>
+</div>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = "Pendiente de migracion";
+
+    [Parameter]
+    public string Message { get; set; } = "La estructura esta preparada para conectar la logica original.";
+}

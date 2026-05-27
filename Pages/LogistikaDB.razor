@@ -1,0 +1,129 @@
+@page "/logistika-db"
+@inject ILogistikaDbService DbService
+@inject IJSRuntime JS
+
+<PageTitle>FeelMW - LogistikaDB</PageTitle>
+
+<SectionHeader Title="LogistikaDB" Subtitle="Logistika.xlsx" />
+
+@if (!string.IsNullOrWhiteSpace(message))
+{
+    <div class="alert alert-info">@message</div>
+}
+
+<div class="toolbar">
+    <select class="form-select" @bind="selectedSheet" @bind:after="LoadAsync">
+        <option value="Ostalak">Ostalak</option>
+        <option value="Ekintzak">Ekintzak</option>
+    </select>
+    <button class="btn btn-primary" @onclick="SaveAsync">Gorde</button>
+</div>
+
+@if (headers.Count == 0)
+{
+    <EmptyState Title="Daturik ez" Message="Hoja hutsik dago." />
+}
+else
+{
+    <div class="db-table-wrap">
+        <table class="table data-table logistika-db-table">
+            <thead>
+                <tr>
+                    @foreach (string header in headers)
+                    {
+                        <th>@header</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @for (int rowIndex = 0; rowIndex < rows.Count; rowIndex++)
+                {
+                    int currentRow = rowIndex;
+                    <tr>
+                        @for (int colIndex = 0; colIndex < headers.Count; colIndex++)
+                        {
+                            int currentCol = colIndex;
+                            <td>
+                                <input class="form-control db-cell-input" value="@rows[currentRow][currentCol]" @oninput="e => UpdateCell(currentRow, currentCol, e.Value?.ToString() ?? string.Empty)" />
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private string selectedSheet = "Ostalak";
+    private List<string> headers = [];
+    private List<List<string>> rows = [];
+    private string? message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        IReadOnlyList<IReadOnlyList<string>> sheetRows = await DbService.ReadSheetAsync(selectedSheet);
+        if (sheetRows.Count == 0)
+        {
+            headers = [];
+            rows = [];
+            message = null;
+            return;
+        }
+
+        headers = sheetRows[0]
+            .Select((header, index) => string.IsNullOrWhiteSpace(header) ? $"Column {index + 1}" : header)
+            .ToList();
+        rows = NormalizeRows(sheetRows.Skip(1).ToList(), headers.Count);
+        AddBlankRow();
+        message = null;
+    }
+
+    private void AddBlankRow()
+    {
+        rows.Add(Enumerable.Repeat("", headers.Count).ToList());
+    }
+
+    private async Task SaveAsync()
+    {
+        List<List<string>> rowsToSave =
+        [
+            headers,
+            .. rows
+                .Where(row => row.Any(cell => !string.IsNullOrWhiteSpace(cell)))
+                .Select(row => row.ToList())
+        ];
+
+        await DbService.SaveSheetAsync(selectedSheet, rowsToSave);
+        byte[] bytes = await DbService.ExportWorkbookAsync();
+        await JS.InvokeVoidAsync("downloadFileFromBase64", "Logistika.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", Convert.ToBase64String(bytes));
+        await LoadAsync();
+        message = "Logistika.xlsx deskargatuta.";
+    }
+
+    private void UpdateCell(int row, int col, string value)
+    {
+        rows[row][col] = value;
+    }
+
+    private static List<List<string>> NormalizeRows(IReadOnlyList<IReadOnlyList<string>> sourceRows, int columns)
+    {
+        return sourceRows
+            .Select(row =>
+            {
+                List<string> values = row.Take(columns).ToList();
+                while (values.Count < columns)
+                {
+                    values.Add("");
+                }
+
+                return values;
+            })
+            .ToList();
+    }
+}

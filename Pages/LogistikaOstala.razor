@@ -1,0 +1,243 @@
+@page "/logistika/ostala"
+@inject LogistikaWorkflowState State
+@inject ILogistikaDataService DataService
+@inject NavigationManager Nav
+
+<PageTitle>FeelMW - Logistika Ostala</PageTitle>
+
+<SectionHeader Title="@Title" Subtitle="Ostala gehitu edo editatu" />
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+<EditForm Model="model" OnSubmit="Save">
+    <div class="data-form">
+        <div class="form-grid">
+            <label>
+                Ostala
+                <InputSelect class="form-select" Value="@model.OstalaIzena" ValueChanged="@((string? value) => OnOstalaChanged(value))" ValueExpression="@(() => model.OstalaIzena)">
+                    <option value="">Aukeratu ostala</option>
+                    @foreach (Ostalak item in presets)
+                    {
+                        <option value="@item.OstalaIzena">@item.OstalaIzena</option>
+                    }
+                </InputSelect>
+            </label>
+            <label>Bonoa <input class="form-control" @bind="model.Bonoa" @bind:event="oninput" /></label>
+            <label>Helbidea <input class="form-control" @bind="model.Helbidea" @bind:event="oninput" /></label>
+            <label>Lokalizatzailea <input class="form-control" @bind="model.Lokalizatzailea" @bind:event="oninput" /></label>
+            <label>Gauak <input type="number" class="form-control" @bind="model.Gauak" @bind:event="oninput" min="1" /></label>
+            <label>DataHasiera <InputDate class="form-control" @bind-Value="dataHasiera" /></label>
+            <label>DataAmaiera <InputDate class="form-control" @bind-Value="dataAmaiera" /></label>
+            <label>Gelak <input class="form-control" @bind="model.Gelak" @bind:event="oninput" /></label>
+            <label>Checkin <input class="form-control" @bind="model.Checkin" @bind:event="oninput" /></label>
+            <label>Checkout <input class="form-control" @bind="model.Checkout" @bind:event="oninput" /></label>
+            <label>Dokumentazioa <input class="form-control" @bind="model.Dokumentazioa" @bind:event="oninput" /></label>
+            <label>Harrera <input class="form-control" @bind="model.Harrera" @bind:event="oninput" /></label>
+            <label>Gosaria <input class="form-control" @bind="model.Gosaria" @bind:event="oninput" /></label>
+            <label>Bazkaria <input class="form-control" @bind="model.Bazkaria" @bind:event="oninput" /></label>
+            <label>Afaria <input class="form-control" @bind="model.Afaria" @bind:event="oninput" /></label>
+            <label>Fidantza <input class="form-control" @bind="model.Fidantza" @bind:event="oninput" /></label>
+            <label>Luggage <input class="form-control" @bind="model.Luggage" @bind:event="oninput" /></label>
+            <label>Instalazioak <input class="form-control" @bind="model.Instalazioak" @bind:event="oninput" /></label>
+        </div>
+        <div class="checks">
+            <label><InputCheckbox @bind-Value="model.Toailak" /> Toailak</label>
+            <label><InputCheckbox @bind-Value="model.Izarak" /> Izarak</label>
+        </div>
+        <div class="actions left">
+            <button class="btn btn-primary" type="submit">Gorde</button>
+            @if (!editing)
+            {
+                <button class="btn btn-outline-primary" type="button" @onclick="AddToExcelAsync">Gehitu</button>
+            }
+            <button class="btn btn-secondary" type="button" @onclick="Exit">Irten</button>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int? Index { get; set; }
+
+    private Ostalak model = NewOstala();
+    private List<Ostalak> presets = [];
+    private DateTime dataHasiera = DateTime.Today;
+    private DateTime dataAmaiera = DateTime.Today;
+    private string? error;
+    private bool editing;
+    private string Title => editing ? "Ostala editatu" : "Ostala gehitu";
+
+    protected override async Task OnInitializedAsync()
+    {
+        model = NewOstala();
+        try
+        {
+            presets = (await DataService.ReadOstalakAsync()).ToList();
+        }
+        catch
+        {
+            presets = [];
+        }
+
+        if (Index is >= 0 && Index < State.Ostalak.Count)
+        {
+            editing = true;
+            Copy(State.Ostalak[Index.Value], model);
+            LoadDates(model.Datak);
+        }
+    }
+
+    private void OnOstalaChanged(string? value)
+    {
+        model.OstalaIzena = value ?? "";
+        Ostalak? selected = presets.FirstOrDefault(o => string.Equals(o.OstalaIzena, model.OstalaIzena, StringComparison.OrdinalIgnoreCase));
+        if (selected is null)
+        {
+            return;
+        }
+
+        Copy(selected, model);
+        LoadDates(model.Datak);
+    }
+
+    private void Save()
+    {
+        if (!Validate())
+        {
+            return;
+        }
+
+        Ostalak ostala = CreateOstala();
+        if (editing && Index is >= 0 && Index < State.Ostalak.Count)
+        {
+            State.Ostalak[Index.Value] = ostala;
+        }
+        else
+        {
+            State.Ostalak.Add(ostala);
+        }
+
+        Nav.NavigateTo("/logistika");
+    }
+
+    private async Task AddToExcelAsync()
+    {
+        if (!Validate())
+        {
+            return;
+        }
+
+        if (presets.Any(o => string.Equals(o.OstalaIzena, model.OstalaIzena, StringComparison.OrdinalIgnoreCase)))
+        {
+            error = "Izen hori duen ostal bat dagoeneko existitzen da.";
+            return;
+        }
+
+        Ostalak ostala = CreateOstala();
+        await DataService.AddOstalaAsync(ostala);
+        State.Ostalak.Add(ostala);
+        Nav.NavigateTo("/logistika");
+    }
+
+    private bool Validate()
+    {
+        if (string.IsNullOrWhiteSpace(model.OstalaIzena))
+        {
+            error = "Ostatuaren izena bete behar da gorde aurretik.";
+            return false;
+        }
+
+        error = null;
+        model.Gauak = Math.Max(BalioLehenetsiak.Gauak, model.Gauak);
+        model.Lokalizatzailea = string.IsNullOrWhiteSpace(model.Lokalizatzailea) ? BalioLehenetsiak.Lokalizatzailea : model.Lokalizatzailea;
+        model.Datak = $"{dataHasiera.ToShortDateString()} - {dataAmaiera.ToShortDateString()}";
+        return true;
+    }
+
+    private void Exit()
+    {
+        model = NewOstala();
+        dataHasiera = DateTime.Today;
+        dataAmaiera = DateTime.Today;
+        error = null;
+        Nav.NavigateTo("/logistika");
+    }
+
+    private Ostalak CreateOstala()
+    {
+        return new Ostalak(
+            model.OstalaIzena,
+            model.Bonoa,
+            model.Helbidea,
+            model.Lokalizatzailea,
+            model.Gauak,
+            model.Datak,
+            model.Gelak,
+            model.Checkin,
+            model.Checkout,
+            model.Dokumentazioa,
+            model.Harrera,
+            model.Gosaria,
+            model.Bazkaria,
+            model.Afaria,
+            model.Toailak,
+            model.Izarak,
+            model.Fidantza,
+            model.Luggage,
+            model.Instalazioak);
+    }
+
+    private void LoadDates(string datak)
+    {
+        string[] parts = (datak ?? "").Split(" - ");
+        if (parts.Length > 0 && DateTime.TryParse(parts[0], out DateTime start))
+        {
+            dataHasiera = start;
+        }
+
+        if (parts.Length > 1 && DateTime.TryParse(parts[1], out DateTime end))
+        {
+            dataAmaiera = end;
+        }
+        else if (DateTime.TryParse(datak, out DateTime day))
+        {
+            dataHasiera = day;
+            dataAmaiera = day;
+        }
+    }
+
+    private static Ostalak NewOstala()
+    {
+        return new Ostalak
+        {
+            Lokalizatzailea = BalioLehenetsiak.Lokalizatzailea,
+            Gauak = BalioLehenetsiak.Gauak
+        };
+    }
+
+    private static void Copy(Ostalak source, Ostalak target)
+    {
+        target.OstalaIzena = source.OstalaIzena;
+        target.Bonoa = source.Bonoa;
+        target.Helbidea = source.Helbidea;
+        target.Lokalizatzailea = string.IsNullOrWhiteSpace(source.Lokalizatzailea) ? BalioLehenetsiak.Lokalizatzailea : source.Lokalizatzailea;
+        target.Gauak = Math.Max(BalioLehenetsiak.Gauak, source.Gauak);
+        target.Datak = source.Datak;
+        target.Gelak = source.Gelak;
+        target.Checkin = source.Checkin;
+        target.Checkout = source.Checkout;
+        target.Dokumentazioa = source.Dokumentazioa;
+        target.Harrera = source.Harrera;
+        target.Gosaria = source.Gosaria;
+        target.Bazkaria = source.Bazkaria;
+        target.Afaria = source.Afaria;
+        target.Toailak = source.Toailak;
+        target.Izarak = source.Izarak;
+        target.Fidantza = source.Fidantza;
+        target.Luggage = source.Luggage;
+        target.Instalazioak = source.Instalazioak;
+    }
+}

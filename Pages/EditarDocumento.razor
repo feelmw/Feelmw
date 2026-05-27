@@ -1,0 +1,161 @@
+@page "/dokumentuak/editatu"
+@inject ILogistikaDataService LogistikaDataService
+@inject LogistikaWorkflowState LogistikaState
+@inject IPlangintzaExcelService PlangintzaExcelService
+@inject PlangintzaWorkflowState PlangintzaState
+@inject NavigationManager Nav
+
+<PageTitle>FeelMW - Editatu</PageTitle>
+
+<SectionHeader Title="Editatu dok." Subtitle="Seleccion de Excel o documento" />
+
+<div class="action-panel">
+    <p>Selecciona un Excel o documento para cargar sus datos.</p>
+    <InputFile OnChange="SeleccionarArchivoAsync" accept=".xlsx,.xls,.doc,.docx" />
+
+    @if (loading)
+    {
+        <div class="alert alert-info mt-3">Cargando archivo...</div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(message))
+    {
+        <div class="alert alert-info mt-3">@message</div>
+    }
+</div>
+
+@code {
+    private const long MaxFileSize = 20 * 1024 * 1024;
+    private bool loading;
+    private string? message;
+
+    private async Task SeleccionarArchivoAsync(InputFileChangeEventArgs args)
+    {
+        if (loading)
+        {
+            return;
+        }
+
+        IBrowserFile file = args.File;
+        string fileName = file.Name;
+        string extension = Path.GetExtension(fileName);
+        string? kind = DetectKind(fileName);
+        message = null;
+
+        if (kind is null)
+        {
+            message = "El archivo debe empezar por 'Logistika -' o 'Plangintza -'.";
+            return;
+        }
+
+        if (file.Size == 0)
+        {
+            message = "El archivo esta vacio.";
+            return;
+        }
+
+        if (!string.Equals(extension, ".xlsx", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(extension, ".xls", StringComparison.OrdinalIgnoreCase))
+        {
+            message = "Archivo identificado, pero la carga de datos desde documento Word aun no esta implementada. Usa un Excel.";
+            return;
+        }
+
+        try
+        {
+            loading = true;
+            await using MemoryStream memory = new();
+            await file.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(memory);
+            memory.Position = 0;
+            Console.WriteLine($"Editatu: archivo recibido '{fileName}' ({file.Size} bytes), tipo {kind}.");
+
+            if (kind == "Logistika")
+            {
+                await LoadLogistikaAsync(memory, fileName);
+                Nav.NavigateTo("/logistika/datuak");
+                return;
+            }
+
+            LoadPlangintza(memory, fileName);
+            Nav.NavigateTo("/plangintza/datuak");
+        }
+        catch (IOException ex)
+        {
+            Console.WriteLine($"Editatu IO error: {ex}");
+            message = "No se ha podido leer el archivo. Comprueba que no este abierto o bloqueado.";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Editatu error: {ex}");
+            message = $"No se ha podido cargar el archivo: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task LoadLogistikaAsync(Stream stream, string fileName)
+    {
+        FeelmwLogistika.Blazor.Models.LogistikaDatuak datuak = await LogistikaDataService.ReadExcelAsync(stream);
+        string cleanName = CleanDocumentName(fileName, "Logistika");
+        LogistikaState.StartEditing(cleanName, datuak.Ostalak, datuak.Ekintzak, datuak.Garraioak);
+    }
+
+    private void LoadPlangintza(Stream stream, string fileName)
+    {
+        FeelmwLogistika.Blazor.Models.PlangintzaDatuak datuak = PlangintzaExcelService.ReadWorkbook(stream);
+        string cleanName = CleanDocumentName(fileName, "Plangintza");
+        PlangintzaState.LoadForEdit(cleanName, ResolveBidaiak(datuak), hasiHutsik: false);
+    }
+
+    private static string CleanDocumentName(string fileName, string prefix)
+    {
+        string withoutExtension = Path.GetFileNameWithoutExtension(fileName);
+        string cleanName = withoutExtension[prefix.Length..].Trim();
+        if (cleanName.StartsWith("-"))
+        {
+            cleanName = cleanName[1..].Trim();
+        }
+
+        return string.IsNullOrWhiteSpace(cleanName) ? prefix : cleanName;
+    }
+
+    private static string? DetectKind(string fileName)
+    {
+        string name = Path.GetFileNameWithoutExtension(fileName).Trim();
+        if (HasPrefix(name, "Logistika"))
+        {
+            return "Logistika";
+        }
+
+        return HasPrefix(name, "Plangintza") ? "Plangintza" : null;
+    }
+
+    private static bool HasPrefix(string name, string prefix)
+    {
+        if (!name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        string rest = name[prefix.Length..].TrimStart();
+        return rest.StartsWith("-");
+    }
+
+    private static IEnumerable<Bidaiak> ResolveBidaiak(FeelmwLogistika.Blazor.Models.PlangintzaDatuak datuak)
+    {
+        if (datuak.Bidaiak.Count > 0)
+        {
+            return datuak.Bidaiak;
+        }
+
+        if (datuak.Hotela is null)
+        {
+            return [];
+        }
+
+        Hotelak hotela = new(datuak.Hotela.Hiria, datuak.Hotela.Izena, datuak.Hotela.HelbideaUrl);
+        return [new Bidaiak(hotela, datuak.EgunKop, datuak.Egunak, datuak.Ekintzak)];
+    }
+}

@@ -1,0 +1,142 @@
+@page "/logistika"
+@inject LogistikaWorkflowState State
+@inject ILogistikaDataService DataService
+@inject ILogistikaExcelService ExcelService
+@inject ILogistikaDocumentService DocumentService
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<PageTitle>FeelMW - Logistika</PageTitle>
+
+<SectionHeader Title="Logistika" Subtitle="Menua" />
+
+@if (!string.IsNullOrWhiteSpace(message))
+{
+    <div class="alert alert-info">@message</div>
+}
+
+<div class="action-panel mt-3">
+    <div class="form-grid">
+        <label>Dokumentua <InputText class="form-control" @bind-Value="documentName" /></label>
+    </div>
+    <div class="quick-grid">
+        <NavLink class="quick-link" href="logistika/ostala">Ostala</NavLink>
+        <NavLink class="quick-link" href="logistika/ekintza">Ekintza</NavLink>
+        <NavLink class="quick-link" href="logistika/garraioa">Garraioa</NavLink>
+        <NavLink class="quick-link" href="logistika/datuak">Ikusi</NavLink>
+    </div>
+    <div class="actions left mt-3">
+        <button class="btn btn-primary" @onclick="SaveAndExitAsync">Gorde</button>
+        <button class="btn btn-outline-primary" @onclick="CreateDocumentAndExitAsync">Sortu Dok.</button>
+        <button class="btn btn-secondary" @onclick="Exit">Irten</button>
+    </div>
+</div>
+
+@code {
+    private string documentName = "MyFeelLogistika";
+    private string mota = "";
+    private string? message;
+
+    protected override void OnInitialized()
+    {
+        documentName = State.DokumentuIzena;
+        mota = State.Mota;
+    }
+
+    private void StartNew()
+    {
+        State.StartNew(mota, documentName);
+        message = "Documento nuevo preparado.";
+    }
+
+    private async Task LoadExistingAsync(InputFileChangeEventArgs args)
+    {
+        IBrowserFile file = args.File;
+        await using Stream stream = file.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024);
+        FeelmwLogistika.Blazor.Models.LogistikaDatuak datuak = await DataService.ReadExcelAsync(stream);
+        string cleanName = Path.GetFileNameWithoutExtension(file.Name).Replace("Logistika -", "", StringComparison.OrdinalIgnoreCase).Trim();
+        State.StartEditing(string.IsNullOrWhiteSpace(cleanName) ? documentName : cleanName, datuak.Ostalak, datuak.Ekintzak, datuak.Garraioak);
+        documentName = State.DokumentuIzena;
+        message = "Documento existente cargado.";
+    }
+
+    private void CreateExcel()
+    {
+        State.DokumentuIzena = string.IsNullOrWhiteSpace(documentName) ? "MyFeelLogistika" : documentName.Trim();
+        State.AzkenExcelBytes = ExcelService.CreateWorkbook(State.ToDatuak());
+        State.AzkenExcelFileName = $"Logistika - {State.DokumentuIzena}.xlsx";
+        message = "Excel intermedio preparado para descargar.";
+    }
+
+    private async Task CreateDocumentAsync()
+    {
+        const string templatePath = "templates/Plantilla.docx";
+        DocumentGenerationResult result = await DocumentService.CreateDocumentFromTemplatePathAsync(templatePath, State.Ostalak, State.Ekintzak, State.Garraioak, documentName);
+        State.AzkenMezuak.Clear();
+        State.AzkenMezuak.AddRange(result.Warnings);
+        State.AzkenMezuak.AddRange(result.Errors);
+        State.AzkenDokumentuaBytes = result.Content.Length == 0 ? null : result.Content;
+        State.AzkenDokumentuaFileName = result.FileName;
+        message = result.Success ? "Documento final preparado para descargar." : string.Join(" ", result.Errors);
+    }
+
+    private async Task SaveAndExitAsync()
+    {
+        FeelmwLogistika.Blazor.Models.LogistikaDatuak datuak = State.ToDatuak();
+        byte[] excelBytes = ExcelService.CreateWorkbook(datuak);
+        await DownloadAsync($"{OutputFileBaseName("Logistika")}.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", excelBytes);
+        Exit();
+    }
+
+    private async Task CreateDocumentAndExitAsync()
+    {
+        FeelmwLogistika.Blazor.Models.LogistikaDatuak datuak = State.ToDatuak();
+        string outputName = OutputFileBaseName("Logistika");
+        const string templatePath = "templates/Plantilla.docx";
+        DocumentGenerationResult result = await DocumentService.CreateDocumentFromTemplatePathAsync(
+            templatePath,
+            datuak.Ostalak,
+            datuak.Ekintzak,
+            datuak.Garraioak,
+            outputName);
+
+        State.AzkenMezuak.Clear();
+        State.AzkenMezuak.AddRange(result.Warnings);
+        State.AzkenMezuak.AddRange(result.Errors);
+
+        if (!result.Success || result.Content.Length == 0)
+        {
+            message = result.Errors.Count == 0 ? "Ezin izan da dokumentua sortu." : string.Join(" ", result.Errors);
+            return;
+        }
+
+        await DownloadAsync($"{outputName}.doc", "application/msword", result.Content);
+        Exit();
+    }
+
+    private async Task DownloadAsync(string fileName, string contentType, byte[] bytes)
+    {
+        await JS.InvokeVoidAsync("downloadFileFromBase64", fileName, contentType, Convert.ToBase64String(bytes));
+    }
+
+    private string OutputFileBaseName(string prefix)
+    {
+        string cleanName = Path.GetFileNameWithoutExtension(documentName.Trim());
+        return string.IsNullOrWhiteSpace(cleanName) ? prefix : $"{prefix} - {cleanName}";
+    }
+
+    private void Exit()
+    {
+        State.ClearData();
+        State.DokumentuIzena = "MyFeelLogistika";
+        documentName = "";
+        mota = State.Mota;
+        message = null;
+        Nav.NavigateTo("/");
+    }
+
+    private void ShowPending(string section)
+    {
+        message = $"{section} oraindik ez dago inplementatuta.";
+    }
+}

@@ -1,0 +1,129 @@
+is_global = true
+build_property.EnableAotAnalyzer = 
+build_property.EnableSingleFileAnalyzer = 
+build_property.EnableTrimAnalyzer = false
+build_property.IncludeAllContentForSelfExtract = 
+build_property.TargetFramework = net8.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = false
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = browser
+build_property.RootNamespace = FeelmwLogistika.Blazor
+build_property.RootNamespace = FeelmwLogistika.Blazor
+build_property.ProjectDir = C:\Users\mikel\Escritorio\FeelMW\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = false
+build_property.RazorLangVersion = 8.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = C:\Users\mikel\Escritorio\FeelMW
+build_property._RazorSourceGeneratorDebug = 
+build_property.EffectiveAnalysisLevelStyle = 8.0
+build_property.EnableCodeStyleSeverity = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Components/App.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBcHAucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Components/Pages/Error.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFcnJvci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Components/Routes.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xSb3V0ZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Components/Shared/EmptyState.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xTaGFyZWRcRW1wdHlTdGF0ZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Components/Shared/ModuleCard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xTaGFyZWRcTW9kdWxlQ2FyZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Components/Shared/SectionHeader.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xTaGFyZWRcU2VjdGlvbkhlYWRlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Components/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xfSW1wb3J0cy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Pages/CrearDocumento.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ3JlYXJEb2N1bWVudG8ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Pages/Datuak.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRGF0dWFrLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Pages/DocumentoFinal.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRG9jdW1lbnRvRmluYWwucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Pages/EditarDocumento.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRWRpdGFyRG9jdW1lbnRvLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Pages/ExcelIntermedio.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRXhjZWxJbnRlcm1lZGlvLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Pages/Home.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Pages/Logistika.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTG9naXN0aWthLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Pages/LogistikaDatuak.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTG9naXN0aWthRGF0dWFrLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Pages/LogistikaDB.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTG9naXN0aWthREIucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Pages/LogistikaEkintza.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTG9naXN0aWthRWtpbnR6YS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Pages/LogistikaGarraioa.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTG9naXN0aWthR2FycmFpb2EucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Pages/LogistikaOstala.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTG9naXN0aWthT3N0YWxhLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Pages/Plangintza.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGxhbmdpbnR6YS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Pages/PlangintzaBidaia.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGxhbmdpbnR6YUJpZGFpYS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Pages/PlangintzaDatuak.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGxhbmdpbnR6YURhdHVhay5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Pages/PlangintzaDB.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGxhbmdpbnR6YURCLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Pages/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcX0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mikel/Escritorio/FeelMW/Components/Layout/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcTWFpbkxheW91dC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-p1v5ej5gkv
+
+[C:/Users/mikel/Escritorio/FeelMW/Components/Layout/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcTmF2TWVudS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-6od0n03q47

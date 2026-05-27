@@ -1,0 +1,318 @@
+@page "/plangintza/bidaia"
+@inject PlangintzaWorkflowState State
+@inject IPlangintzaListakService ListakService
+@inject NavigationManager Nav
+
+<PageTitle>FeelMW - Plangintza Bidaia</PageTitle>
+
+<SectionHeader Title="@Title" Subtitle="Hotel → egunak → ekintzak" />
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+<div class="data-form">
+    <div class="form-grid">
+        <label>
+            Hotela
+            <input class="form-control" list="hotelak-list" @bind="hotelName" @bind:event="oninput" @onchange="HotelSelected" />
+            <datalist id="hotelak-list">
+                @foreach (Hotelak item in hotelPresets)
+                {
+                    <option value="@item.Izena"></option>
+                }
+            </datalist>
+        </label>
+        <label>Hiria <input class="form-control" @bind="hiria" @bind:event="oninput" /></label>
+        <label>Helbidea / URL <input class="form-control" @bind="helbideaUrl" @bind:event="oninput" /></label>
+        <label>Egun kopurua <input type="number" class="form-control" value="@egunKop" min="1" @oninput="OnEgunKopInput" /></label>
+        <label>Data hasiera <input type="date" class="form-control" value="@startDate.ToString("yyyy-MM-dd")" @oninput="OnStartDateInput" /></label>
+    </div>
+
+    <h2>Egunak</h2>
+    <table class="table data-table">
+        <thead>
+            <tr>
+                <th>Eguna</th>
+                <th>Data</th>
+                <th>Goisa</th>
+                <th>Arratsaldea</th>
+                <th>Gaua</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < egunak.Count; i++)
+            {
+                int index = i;
+                <tr>
+                    <td>@egunak[index].Eguna</td>
+                    <td><input class="form-control" @bind="egunak[index].Data" @bind:event="oninput" /></td>
+                    <td><input class="form-control" @bind="egunak[index].Goisa" @bind:event="oninput" /></td>
+                    <td><input class="form-control" @bind="egunak[index].Arratsaldea" @bind:event="oninput" /></td>
+                    <td><input class="form-control" @bind="egunak[index].Gaua" @bind:event="oninput" /></td>
+                    <td><button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteDay(index)">Ezabatu</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h2>Ekintzak</h2>
+    <table class="table data-table">
+        <thead>
+            <tr>
+                <th>Eguna</th>
+                <th>Ordua</th>
+                <th>Mota</th>
+                <th>Deskribapena</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < ekintzak.Count; i++)
+            {
+                int index = i;
+                <tr>
+                    <td>
+                        <InputSelect class="form-select" @bind-Value="ekintzak[index].Eguna">
+                            @foreach (string eguna in DayOptions)
+                            {
+                                <option value="@eguna">@eguna</option>
+                            }
+                        </InputSelect>
+                    </td>
+                    <td><input class="form-control" @bind="ekintzak[index].Ordua" @bind:event="oninput" /></td>
+                    <td>
+                        <input class="form-control" list="mota-list" @bind="ekintzak[index].Mota" @bind:event="oninput" @onchange="() => ActivityTypeSelected(index)" />
+                    </td>
+                    <td><input class="form-control" @bind="ekintzak[index].Deskribapena" @bind:event="oninput" /></td>
+                    <td><button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteActivity(index)">Ezabatu</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <datalist id="mota-list">
+        @foreach (EkintzakPlan item in activityPresets)
+        {
+            <option value="@item.Mota"></option>
+        }
+    </datalist>
+
+    <div class="actions left">
+        <button class="btn btn-outline-primary" @onclick="AddActivity">+ Ekintza</button>
+        <button class="btn btn-primary" @onclick="Save">Zerrendara gehitu</button>
+        <button class="btn btn-secondary" @onclick="@(() => Nav.NavigateTo("/plangintza"))">Itzuli</button>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int? Index { get; set; }
+
+    private List<Hotelak> hotelPresets = [];
+    private List<EkintzakPlan> activityPresets = [];
+    private string hotelName = "";
+    private string hiria = "";
+    private string helbideaUrl = "";
+    private int egunKop = 1;
+    private DateTime startDate = DateTime.Today;
+    private List<EgunLaburpena> egunak = [];
+    private List<EkintzaDatuak> ekintzak = [];
+    private string? error;
+    private bool editing;
+    private string Title => editing ? "Bidaia editatu" : "Bidaia gehitu";
+    private List<string> DayOptions => BuildDayOptions();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            PlangintzaListak listak = await ListakService.ReadAllAsync();
+            hotelPresets = listak.Ostalak;
+            activityPresets = listak.Ekintzak;
+        }
+        catch
+        {
+            hotelPresets = [];
+            activityPresets = [];
+        }
+
+        if (Index is >= 0 && Index < State.Bidaiak.Count)
+        {
+            editing = true;
+            Load(State.Bidaiak[Index.Value]);
+        }
+        else
+        {
+            EnsureDays();
+            AddActivity();
+        }
+    }
+
+    private void HotelSelected(ChangeEventArgs _)
+    {
+        Hotelak? selected = hotelPresets.FirstOrDefault(h => string.Equals(h.Izena, hotelName, StringComparison.OrdinalIgnoreCase));
+        if (selected is null)
+        {
+            return;
+        }
+
+        hiria = selected.Hiria;
+        helbideaUrl = selected.HelbideaUrl;
+    }
+
+    private void EnsureDays()
+    {
+        egunKop = Math.Max(1, egunKop);
+        while (egunak.Count < egunKop)
+        {
+            int num = egunak.Count + 1;
+            egunak.Add(new EgunLaburpena(num, startDate.AddDays(num - 1).ToShortDateString(), "", "", ""));
+        }
+
+        while (egunak.Count > egunKop)
+        {
+            DeleteDay(egunak.Count - 1);
+        }
+    }
+
+    private void OnEgunKopInput(ChangeEventArgs args)
+    {
+        if (int.TryParse(args.Value?.ToString(), out int value))
+        {
+            egunKop = Math.Max(1, value);
+            EnsureDays();
+        }
+    }
+
+    private void OnStartDateInput(ChangeEventArgs args)
+    {
+        if (DateTime.TryParse(args.Value?.ToString(), out DateTime value))
+        {
+            startDate = value;
+            RegenerateDayNames();
+        }
+    }
+
+    private void RegenerateDayNames()
+    {
+        for (int i = 0; i < egunak.Count; i++)
+        {
+            egunak[i].Data = startDate.AddDays(i).ToShortDateString();
+        }
+    }
+
+    private void DeleteDay(int index)
+    {
+        if (index < 0 || index >= egunak.Count)
+        {
+            return;
+        }
+
+        EgunLaburpena removed = egunak[index];
+        egunak.RemoveAt(index);
+        for (int i = 0; i < egunak.Count; i++)
+        {
+            egunak[i].Eguna = i + 1;
+        }
+
+        egunKop = Math.Max(1, egunak.Count);
+        ekintzak.RemoveAll(e => e.Eguna == removed.Data || e.Eguna == $"{removed.Eguna}. eguna" || e.Eguna == $"Eguna{removed.Eguna}");
+    }
+
+    private void AddActivity()
+    {
+        string day = DayOptions.FirstOrDefault() ?? "Eguna1";
+        ekintzak.Add(new EkintzaDatuak(day, DateTime.Now.ToShortTimeString(), "", ""));
+    }
+
+    private void DeleteActivity(int index)
+    {
+        if (index >= 0 && index < ekintzak.Count)
+        {
+            ekintzak.RemoveAt(index);
+        }
+    }
+
+    private void ActivityTypeSelected(int index)
+    {
+        if (index < 0 || index >= ekintzak.Count)
+        {
+            return;
+        }
+
+        EkintzakPlan? selected = activityPresets.FirstOrDefault(e => string.Equals(e.Mota, ekintzak[index].Mota, StringComparison.OrdinalIgnoreCase));
+        if (selected is not null)
+        {
+            ekintzak[index].Deskribapena = selected.Deskribapena;
+        }
+    }
+
+    private void Save()
+    {
+        if (string.IsNullOrWhiteSpace(hotelName))
+        {
+            error = "Aukeratu edo idatzi hotel bat.";
+            return;
+        }
+
+        EnsureDays();
+        Hotelak hotel = new(hiria, hotelName, helbideaUrl);
+        List<EkintzaDatuak> cleanActivities = ekintzak
+            .Where(e => !string.IsNullOrWhiteSpace(e.Mota) || !string.IsNullOrWhiteSpace(e.Deskribapena))
+            .ToList();
+        Bidaiak bidaia = new(hotel, egunKop, egunak.ToList(), cleanActivities);
+
+        if (editing && Index is >= 0 && Index < State.Bidaiak.Count)
+        {
+            State.Bidaiak[Index.Value] = bidaia;
+        }
+        else
+        {
+            State.UpsertBidaia(bidaia);
+        }
+
+        Nav.NavigateTo("/plangintza");
+    }
+
+    private void Load(Bidaiak bidaia)
+    {
+        hotelName = bidaia.HotelHautatua?.Izena ?? "";
+        hiria = bidaia.HotelHautatua?.Hiria ?? "";
+        helbideaUrl = bidaia.HotelHautatua?.HelbideaUrl ?? "";
+        egunKop = Math.Max(1, bidaia.EgunKop);
+        egunak = bidaia.EgunLaburpenak.Select(e => new EgunLaburpena(e.Eguna, e.Data, e.Goisa, e.Arratsaldea, e.Gaua)).ToList();
+        ekintzak = bidaia.EkintzaDatuak.Select(e => new EkintzaDatuak(e.Eguna, e.Ordua, e.Mota, e.Deskribapena)).ToList();
+        if (DateTime.TryParse(egunak.FirstOrDefault()?.Data, out DateTime parsed))
+        {
+            startDate = parsed;
+        }
+
+        EnsureDays();
+        if (ekintzak.Count == 0)
+        {
+            AddActivity();
+        }
+    }
+
+    private List<string> BuildDayOptions()
+    {
+        EnsureDaysNoMutationLoop();
+        List<string> options = egunak.Where(e => !string.IsNullOrWhiteSpace(e.Data)).Select(e => e.Data).ToList();
+        if (options.Count > 0)
+        {
+            return options.Take(egunKop).ToList();
+        }
+
+        return Enumerable.Range(1, egunKop).Select(i => $"Eguna{i}").ToList();
+    }
+
+    private void EnsureDaysNoMutationLoop()
+    {
+        if (egunak.Count == 0)
+        {
+            egunak.Add(new EgunLaburpena(1, startDate.ToShortDateString(), "", "", ""));
+        }
+    }
+}

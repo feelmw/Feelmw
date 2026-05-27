@@ -1,0 +1,120 @@
+@page "/logistika/garraioa"
+@inject LogistikaWorkflowState State
+@inject NavigationManager Nav
+
+<PageTitle>FeelMW - Logistika Garraioa</PageTitle>
+
+<SectionHeader Title="@Title" Subtitle="Garraioa gehitu edo editatu" />
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+<EditForm Model="model" OnSubmit="Save">
+    <div class="data-form">
+        <div class="form-grid">
+            <label>GarraioaIzena <input class="form-control" @bind="model.GarraioaIzena" @bind:event="oninput" /></label>
+            <label>Eguna <input class="form-control" @bind="model.Eguna" @bind:event="oninput" /></label>
+            <label>Ordutegia <input class="form-control" @bind="model.Ordutegia" @bind:event="oninput" /></label>
+            <label>Lokalizatzailea <input class="form-control" @bind="model.Lokalizatzailea" @bind:event="oninput" /></label>
+            <label>Kontaktua <input class="form-control" @bind="model.Kontaktua" @bind:event="oninput" /></label>
+            <label>Elkargunea <input class="form-control" @bind="model.Elkargunea" @bind:event="oninput" /></label>
+            <label>Eginbeharrak <input class="form-control" @bind="model.Eginbeharrak" @bind:event="oninput" /></label>
+            <label>Informazioa <input class="form-control" @bind="model.Informazioa" @bind:event="oninput" /></label>
+        </div>
+        <div class="actions left">
+            <button class="btn btn-primary" type="submit">Gorde</button>
+            <button class="btn btn-secondary" type="button" @onclick="Exit">Irten</button>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int? Index { get; set; }
+
+    private Garraioak model = NewGarraioa();
+    private string? error;
+    private bool editing;
+    private string Title => editing ? "Garraioa editatu" : "Garraioa gehitu";
+
+    protected override void OnInitialized()
+    {
+        if (Index is >= 0 && Index < State.Garraioak.Count)
+        {
+            editing = true;
+            Copy(State.Garraioak[Index.Value], model);
+        }
+    }
+
+    private void Save()
+    {
+        if (!Validate())
+        {
+            return;
+        }
+
+        Garraioak garraioa = CreateGarraioa();
+        if (editing && Index is >= 0 && Index < State.Garraioak.Count)
+        {
+            State.Garraioak[Index.Value] = garraioa;
+        }
+        else
+        {
+            State.Garraioak.Add(garraioa);
+        }
+
+        Nav.NavigateTo("/logistika");
+    }
+
+    private bool Validate()
+    {
+        if (string.IsNullOrWhiteSpace(model.GarraioaIzena))
+        {
+            error = "Garraioak izen bat behar du.";
+            return false;
+        }
+
+        error = null;
+        model.Lokalizatzailea = string.IsNullOrWhiteSpace(model.Lokalizatzailea) ? BalioLehenetsiak.Lokalizatzailea : model.Lokalizatzailea;
+        return true;
+    }
+
+    private void Exit()
+    {
+        model = NewGarraioa();
+        error = null;
+        Nav.NavigateTo("/logistika");
+    }
+
+    private Garraioak CreateGarraioa()
+    {
+        return new Garraioak(
+            model.GarraioaIzena,
+            model.Eguna,
+            model.Ordutegia,
+            model.Lokalizatzailea,
+            model.Kontaktua,
+            model.Elkargunea,
+            model.Eginbeharrak,
+            model.Informazioa);
+    }
+
+    private static Garraioak NewGarraioa()
+    {
+        return new Garraioak { Lokalizatzailea = BalioLehenetsiak.Lokalizatzailea };
+    }
+
+    private static void Copy(Garraioak source, Garraioak target)
+    {
+        target.GarraioaIzena = source.GarraioaIzena;
+        target.Eguna = source.Eguna;
+        target.Ordutegia = source.Ordutegia;
+        target.Lokalizatzailea = string.IsNullOrWhiteSpace(source.Lokalizatzailea) ? BalioLehenetsiak.Lokalizatzailea : source.Lokalizatzailea;
+        target.Kontaktua = source.Kontaktua;
+        target.Elkargunea = source.Elkargunea;
+        target.Eginbeharrak = source.Eginbeharrak;
+        target.Informazioa = source.Informazioa;
+    }
+}

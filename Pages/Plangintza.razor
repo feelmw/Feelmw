@@ -1,0 +1,380 @@
+@page "/plangintza"
+@inject PlangintzaWorkflowState State
+@inject IPlangintzaListakService ListakService
+@inject IPlangintzaExcelService ExcelService
+@inject IPlangintzaDocumentService DocumentService
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<PageTitle>FeelMW - Plangintza</PageTitle>
+
+<SectionHeader Title="Plangintza" Subtitle="Hotelak, egunak eta ekintzak" />
+
+@foreach (string mezua in State.Mezuak.Distinct())
+{
+    <div class="alert alert-info">@mezua</div>
+}
+
+@if (!string.IsNullOrWhiteSpace(message))
+{
+    <div class="alert alert-info">@message</div>
+}
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+<div class="plangintza-board">
+    <section class="plangintza-panel">
+        <div class="form-grid">
+            <label>Dokumentua <InputText class="form-control" @bind-Value="documentName" /></label>
+            <label>Ikastetxea <InputText class="form-control" @bind-Value="ikastetxea" /></label>
+            <label>
+                Ostala / Hotela
+                <select class="form-select" value="@hotelName" @onchange="HotelSelected">
+                    <option value="">Aukeratu ostala</option>
+                    @foreach (Hotelak item in hotelPresets)
+                    {
+                        <option value="@item.Izena">@item.Izena</option>
+                    }
+                </select>
+            </label>
+            <label>Hiria <input class="form-control" @bind="hiria" @bind:event="oninput" /></label>
+            <label>Helbidea / URL <input class="form-control" @bind="helbideaUrl" @bind:event="oninput" /></label>
+            <label>Egun kopurua <input type="number" class="form-control" value="@egunKop" min="1" @oninput="OnEgunKopInput" /></label>
+        </div>
+    </section>
+
+    <section class="plangintza-panel">
+        <h2>Egunak</h2>
+        <div class="db-table-wrap">
+            <table class="table data-table">
+                <thead>
+                    <tr>
+                        <th>Eguna</th>
+                        <th>Data</th>
+                        <th>Goisa</th>
+                        <th>Arratsaldea</th>
+                        <th>Gaua</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < egunak.Count; i++)
+                    {
+                        int index = i;
+                        <tr>
+                            <td>@egunak[index].Eguna</td>
+                            <td><input type="text" class="form-control" @bind="egunak[index].Data" @bind:event="oninput" /></td>
+                            <td><input class="form-control" @bind="egunak[index].Goisa" @bind:event="oninput" /></td>
+                            <td><input class="form-control" @bind="egunak[index].Arratsaldea" @bind:event="oninput" /></td>
+                            <td><input class="form-control" @bind="egunak[index].Gaua" @bind:event="oninput" /></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="plangintza-panel">
+        <div class="section-title-row">
+            <h2>Ekintzak</h2>
+            <div class="actions left">
+                <button class="btn btn-outline-primary" @onclick="AddActivity">+ Ekintza</button>
+                <button class="btn btn-outline-secondary" @onclick="AddMotaAsync">+ Mota</button>
+            </div>
+        </div>
+        <div class="db-table-wrap">
+            <table class="table data-table">
+                <thead>
+                    <tr>
+                        <th>Eguna</th>
+                        <th>Ordua</th>
+                        <th>Mota</th>
+                        <th>Deskribapena</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < ekintzak.Count; i++)
+                    {
+                        int index = i;
+                        <tr>
+                            <td>
+                                <InputSelect class="form-select" @bind-Value="ekintzak[index].Eguna">
+                                    @foreach (string eguna in DayOptions)
+                                    {
+                                        <option value="@eguna">@eguna</option>
+                                    }
+                                </InputSelect>
+                            </td>
+                            <td><input class="form-control" @bind="ekintzak[index].Ordua" @bind:event="oninput" /></td>
+                            <td><input class="form-control" list="mota-list" @bind="ekintzak[index].Mota" @bind:event="oninput" @onchange="() => ActivityTypeSelected(index)" /></td>
+                            <td><input class="form-control" @bind="ekintzak[index].Deskribapena" @bind:event="oninput" /></td>
+                            <td><button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteActivity(index)">Ezabatu</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <datalist id="mota-list">
+            @foreach (EkintzakPlan item in activityPresets)
+            {
+                <option value="@item.Mota"></option>
+            }
+        </datalist>
+    </section>
+
+    <section class="plangintza-panel">
+        <div class="summary-line">
+            <span>Hotelak: @State.Bidaiak.Count</span>
+            <span>Egunak: @State.Bidaiak.Sum(b => b.EgunLaburpenak.Count)</span>
+            <span>Ekintzak: @State.Bidaiak.Sum(b => b.EkintzaDatuak.Count)</span>
+        </div>
+        <div class="actions left">
+            <NavLink class="btn btn-outline-primary" href="plangintza/datuak">Datuak ikusi</NavLink>
+            <button class="btn btn-primary" @onclick="SaveToList">Zerrendara</button>
+            <button class="btn btn-outline-primary" @onclick="CreateDocumentAsync">Sortu dok.</button>
+            <button class="btn btn-outline-primary" @onclick="CreateExcelAsync">Gorde</button>
+            <button class="btn btn-secondary" @onclick="Exit">Irten</button>
+        </div>
+    </section>
+</div>
+
+@code {
+    private List<Hotelak> hotelPresets = [];
+    private List<EkintzakPlan> activityPresets = [];
+    private string documentName = "MyFeelPlangintza";
+    private string ikastetxea = "";
+    private string hotelName = "";
+    private string hiria = "";
+    private string helbideaUrl = "";
+    private int egunKop = 1;
+    private DateTime startDate = DateTime.Today;
+    private List<EgunLaburpena> egunak = [];
+    private List<EkintzaDatuak> ekintzak = [];
+    private string? message;
+    private string? error;
+    private List<string> DayOptions => egunak.Count == 0
+        ? ["Eguna1"]
+        : egunak.Select(e => string.IsNullOrWhiteSpace(e.Data) ? $"Eguna{e.Eguna}" : e.Data).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        documentName = State.DokumentuIzena;
+        ikastetxea = State.Ikastetxea;
+
+        try
+        {
+            PlangintzaListak listak = await ListakService.ReadAllAsync();
+            hotelPresets = listak.Ostalak;
+            activityPresets = listak.Ekintzak;
+        }
+        catch
+        {
+            hotelPresets = [];
+            activityPresets = [];
+        }
+
+        EnsureDays();
+        AddActivity();
+    }
+
+    private void HotelSelected(ChangeEventArgs _)
+    {
+        hotelName = _?.Value?.ToString() ?? "";
+        Hotelak? selected = hotelPresets.FirstOrDefault(h => string.Equals(h.Izena, hotelName, StringComparison.OrdinalIgnoreCase));
+        if (selected is null)
+        {
+            hiria = "";
+            helbideaUrl = "";
+            return;
+        }
+
+        hiria = selected.Hiria;
+        helbideaUrl = selected.HelbideaUrl;
+    }
+
+    private void OnEgunKopInput(ChangeEventArgs args)
+    {
+        if (int.TryParse(args.Value?.ToString(), out int value))
+        {
+            egunKop = Math.Max(1, value);
+            EnsureDays();
+        }
+    }
+
+    private void EnsureDays()
+    {
+        egunKop = Math.Max(1, egunKop);
+        while (egunak.Count < egunKop)
+        {
+            int num = egunak.Count + 1;
+            egunak.Add(new EgunLaburpena(num, startDate.AddDays(num - 1).ToShortDateString(), "", "", ""));
+        }
+
+        while (egunak.Count > egunKop)
+        {
+            EgunLaburpena removed = egunak[^1];
+            egunak.RemoveAt(egunak.Count - 1);
+            ekintzak.RemoveAll(e => e.Eguna == removed.Data || e.Eguna == $"Eguna{removed.Eguna}");
+        }
+
+        for (int i = 0; i < egunak.Count; i++)
+        {
+            egunak[i].Eguna = i + 1;
+        }
+    }
+
+    private void AddActivity()
+    {
+        string day = DayOptions.FirstOrDefault() ?? "Eguna1";
+        ekintzak.Add(new EkintzaDatuak(day, DateTime.Now.ToShortTimeString(), "", ""));
+    }
+
+    private void DeleteActivity(int index)
+    {
+        if (index >= 0 && index < ekintzak.Count)
+        {
+            ekintzak.RemoveAt(index);
+        }
+    }
+
+    private void ActivityTypeSelected(int index)
+    {
+        if (index < 0 || index >= ekintzak.Count)
+        {
+            return;
+        }
+
+        EkintzakPlan? selected = activityPresets.FirstOrDefault(e => string.Equals(e.Mota, ekintzak[index].Mota, StringComparison.OrdinalIgnoreCase));
+        if (selected is not null)
+        {
+            ekintzak[index].Deskribapena = selected.Deskribapena;
+        }
+    }
+
+    private async Task AddMotaAsync()
+    {
+        EkintzaDatuak? source = ekintzak.LastOrDefault(e => !string.IsNullOrWhiteSpace(e.Mota));
+        if (source is null)
+        {
+            message = "+ Mota prest dago; idatzi lehenengo Mota bat ekintza batean.";
+            return;
+        }
+
+        EkintzakPlan plan = new(source.Mota, source.Deskribapena);
+        await ListakService.AddEkintzaAsync(plan);
+        activityPresets.Add(plan);
+        message = "Mota berria gehituta.";
+    }
+
+    private void SaveToList()
+    {
+        error = null;
+        if (string.IsNullOrWhiteSpace(hotelName))
+        {
+            error = "Aukeratu edo idatzi hotel bat.";
+            return;
+        }
+
+        EnsureDays();
+        Hotelak hotel = new(hiria, hotelName, helbideaUrl);
+        List<EkintzaDatuak> cleanActivities = ekintzak
+            .Where(e => !string.IsNullOrWhiteSpace(e.Mota) || !string.IsNullOrWhiteSpace(e.Deskribapena))
+            .Select(e => new EkintzaDatuak(e.Eguna, e.Ordua, e.Mota, e.Deskribapena))
+            .ToList();
+        Bidaiak bidaia = new(
+            hotel,
+            egunKop,
+            egunak.Select(e => new EgunLaburpena(e.Eguna, e.Data, e.Goisa, e.Arratsaldea, e.Gaua)).ToList(),
+            cleanActivities);
+
+        State.DokumentuIzena = string.IsNullOrWhiteSpace(documentName) ? "MyFeelPlangintza" : documentName.Trim();
+        State.Ikastetxea = ikastetxea;
+        State.UpsertBidaia(bidaia);
+        message = "Bidaia zerrendara gehituta.";
+    }
+
+    private async Task CreateExcelAsync()
+    {
+        SaveToList();
+        if (!string.IsNullOrWhiteSpace(error))
+        {
+            return;
+        }
+
+        byte[] bytes = ExcelService.CreateWorkbook(State.Bidaiak);
+        await DownloadAsync($"{OutputFileBaseName("Plangintza")}.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", bytes);
+        CleanAndExit();
+    }
+
+    private async Task CreateDocumentAsync()
+    {
+        SaveToList();
+        if (!string.IsNullOrWhiteSpace(error))
+        {
+            return;
+        }
+
+        const string templatePath = "templates/Plangintza.docx";
+        DocumentGenerationResult result = await DocumentService.CreateDocumentFromTemplatePathAsync(templatePath, State.Bidaiak, State.DokumentuIzena, State.Ikastetxea);
+        State.Mezuak.Clear();
+        State.Mezuak.AddRange(result.Warnings);
+        State.Mezuak.AddRange(result.Errors);
+        if (!result.Success || result.Content.Length == 0)
+        {
+            message = result.Errors.Count == 0 ? "Ezin izan da dokumentua sortu." : string.Join(" ", result.Errors);
+            return;
+        }
+
+        await DownloadAsync($"{OutputFileBaseName("Plangintza")}.doc", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", result.Content);
+        CleanAndExit();
+    }
+
+    private async Task DownloadAsync(string fileName, string contentType, byte[] bytes)
+    {
+        await JS.InvokeVoidAsync("downloadFileFromBase64", fileName, contentType, Convert.ToBase64String(bytes));
+    }
+
+    private string OutputFileBaseName(string prefix)
+    {
+        string cleanName = Path.GetFileNameWithoutExtension(documentName.Trim());
+        return string.IsNullOrWhiteSpace(cleanName) ? prefix : $"{prefix} - {cleanName}";
+    }
+
+    private void Exit()
+    {
+        CleanAndExit();
+    }
+
+    private void CleanAndExit()
+    {
+        State.Clear();
+        State.DokumentuIzena = "";
+        State.Ikastetxea = "";
+        ClearForm(addInitialRows: false);
+        Nav.NavigateTo("/");
+    }
+
+    private void ClearForm(bool addInitialRows = true)
+    {
+        documentName = "";
+        ikastetxea = "";
+        hotelName = "";
+        hiria = "";
+        helbideaUrl = "";
+        egunKop = 1;
+        startDate = DateTime.Today;
+        egunak = [];
+        ekintzak = [];
+        error = null;
+        message = null;
+        if (addInitialRows)
+        {
+            EnsureDays();
+            AddActivity();
+        }
+    }
+
+}

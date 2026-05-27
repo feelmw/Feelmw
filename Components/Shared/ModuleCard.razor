@@ -1,0 +1,15 @@
+<NavLink class="module-card" href="@Href">
+    <strong>@Title</strong>
+    <span>@Description</span>
+</NavLink>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Href { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = "";
+
+    [Parameter]
+    public string Description { get; set; } = "";
+}

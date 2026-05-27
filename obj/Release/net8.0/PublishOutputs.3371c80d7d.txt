@@ -1,0 +1,4 @@
+C:\Users\mikel\Escritorio\FeelMW\publish\appsettings.Development.json
+C:\Users\mikel\Escritorio\FeelMW\publish\appsettings.json
+C:\Users\mikel\Escritorio\FeelMW\publish\emcc-props.json
+C:\Users\mikel\Escritorio\FeelMW\publish\web.config

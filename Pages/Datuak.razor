@@ -1,0 +1,26 @@
+@page "/datuak"
+@inject ILogistikaService LogistikaService
+@inject IPlangintzaService PlangintzaService
+
+<PageTitle>FeelMW - Datuak</PageTitle>
+
+<SectionHeader Title="Ver datos guardados" Subtitle="Vista de lectura para datos persistidos" />
+
+<div class="workflow-grid">
+    <section>
+        <h2>Logistika</h2>
+        <EmptyState Message="Pendiente de conectar Ostalak, Ekintzak y Garraioak guardados." />
+    </section>
+    <section>
+        <h2>Plangintza</h2>
+        <EmptyState Message="Pendiente de conectar Bidaiak, Egunak y Hotelak guardados." />
+    </section>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await LogistikaService.GetOstalakAsync();
+        await PlangintzaService.GetBidaiakAsync();
+    }
+}

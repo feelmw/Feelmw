@@ -1,0 +1,20 @@
+@page "/excel-intermedio"
+@inject IExcelInfrastructureService ExcelService
+@inject IDocumentWorkflowService WorkflowService
+
+<PageTitle>FeelMW - Excel</PageTitle>
+
+<SectionHeader Title="Crear Excel intermedio" Subtitle="Infraestructura preparada para Excel" />
+
+<div class="action-panel">
+    <p>Preparado para generar el Excel intermedio cuando se migre la logica original.</p>
+    <button class="btn btn-primary" @onclick="CrearAsync">Crear Excel intermedio</button>
+</div>
+
+@code {
+    private async Task CrearAsync()
+    {
+        await ExcelService.CreateIntermediateWorkbookAsync();
+        await WorkflowService.CreateIntermediateExcelAsync();
+    }
+}

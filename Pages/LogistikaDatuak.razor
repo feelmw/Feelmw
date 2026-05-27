@@ -1,0 +1,61 @@
+@page "/logistika/datuak"
+@inject LogistikaWorkflowState State
+@inject NavigationManager Nav
+
+<PageTitle>FeelMW - Logistika Ikusi</PageTitle>
+
+<SectionHeader Title="Ikusi" Subtitle="Logistikako objektuak" />
+
+<div class="toolbar">
+    <button class="btn btn-secondary" @onclick="@(() => Nav.NavigateTo("/logistika"))">Irten</button>
+</div>
+
+<table class="table data-table">
+    <thead>
+        <tr>
+            <th>Mota</th>
+            <th>Izena</th>
+            <th>Eguna</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (DataRow row in Rows)
+        {
+            <tr>
+                <td>@row.Mota</td>
+                <td>@row.Izena</td>
+                <td>@row.Eguna</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (!Rows.Any())
+{
+    <EmptyState Title="Daturik ez" Message="Oraindik ez da elementurik gehitu." />
+}
+
+@code {
+    private IEnumerable<DataRow> Rows
+    {
+        get
+        {
+            foreach (Ostalak item in State.Ostalak)
+            {
+                yield return new DataRow("Ostala", item.OstalaIzena, item.Datak);
+            }
+
+            foreach (Ekintzak item in State.Ekintzak)
+            {
+                yield return new DataRow("Ekintza", item.EkintzaIzena, "");
+            }
+
+            foreach (Garraioak item in State.Garraioak)
+            {
+                yield return new DataRow("Garraioa", item.GarraioaIzena, item.Eguna);
+            }
+        }
+    }
+
+    private sealed record DataRow(string Mota, string Izena, string Eguna);
+}
