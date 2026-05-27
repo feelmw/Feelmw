@@ -7,15 +7,15 @@
 
 <PageTitle>FeelMW - Editatu</PageTitle>
 
-<SectionHeader Title="Editatu dok." Subtitle="Seleccion de Excel o documento" />
+<SectionHeader Title="Editatu dok." Subtitle="Aukeratu Excel edo dokumentua" />
 
 <div class="action-panel">
-    <p>Selecciona un Excel o documento para cargar sus datos.</p>
+    <p>Aukeratu Excel edo dokumentu bat datuak kargatzeko.</p>
     <InputFile OnChange="SeleccionarArchivoAsync" accept=".xlsx,.xls,.doc,.docx" />
 
     @if (loading)
     {
-        <div class="alert alert-info mt-3">Cargando archivo...</div>
+        <div class="alert alert-info mt-3">Fitxategia kargatzen...</div>
     }
 
     @if (!string.IsNullOrWhiteSpace(message))
@@ -44,20 +44,20 @@
 
         if (kind is null)
         {
-            message = "El archivo debe empezar por 'Logistika -' o 'Plangintza -'.";
+            message = "Fitxategiaren izena 'Logistika -' edo 'Plangintza -' hasierarekin hasi behar da.";
             return;
         }
 
         if (file.Size == 0)
         {
-            message = "El archivo esta vacio.";
+            message = "Fitxategia hutsik dago.";
             return;
         }
 
         if (!string.Equals(extension, ".xlsx", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(extension, ".xls", StringComparison.OrdinalIgnoreCase))
         {
-            message = "Archivo identificado, pero la carga de datos desde documento Word aun no esta implementada. Usa un Excel.";
+            message = "Fitxategia identifikatu da, baina Word dokumentuetatik datuak kargatzea ez dago oraindik prest. Erabili Excel bat.";
             return;
         }
 
@@ -67,7 +67,7 @@
             await using MemoryStream memory = new();
             await file.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(memory);
             memory.Position = 0;
-            Console.WriteLine($"Editatu: archivo recibido '{fileName}' ({file.Size} bytes), tipo {kind}.");
+            Console.WriteLine($"Editatu: fitxategia jasota '{fileName}' ({file.Size} byte), mota {kind}.");
 
             if (kind == "Logistika")
             {
@@ -82,12 +82,12 @@
         catch (IOException ex)
         {
             Console.WriteLine($"Editatu IO error: {ex}");
-            message = "No se ha podido leer el archivo. Comprueba que no este abierto o bloqueado.";
+            message = "Ezin izan da fitxategia irakurri. Egiaztatu ez dagoela irekita edo blokeatuta.";
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Editatu error: {ex}");
-            message = $"No se ha podido cargar el archivo: {ex.Message}";
+            message = $"Ezin izan da fitxategia kargatu: {ex.Message}";
         }
         finally
         {

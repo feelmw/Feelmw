@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "FeelmwLogistika.Blazor",
   "resources": {
-    "hash": "sha256-BHMpSIA2hkFR4OvpkER9jd4eUpbg9WeURLrPkBYeudU=",
+    "hash": "sha256-5t+9amIAFsYgVPJinJf9+zRncYD+upDCo0Zk5Rjc3pI=",
     "jsModuleNative": {
       "dotnet.native.js": "sha256-sn/g61GjVPhViOYQDkq1OMlk0eyS9r2Hi0qgU2o0HIU="
     },
@@ -217,10 +217,10 @@
       "mscorlib.wasm": "sha256-YI5F+NHcYCSuCGvvp5vyTL2orAoMlXo4ep5foTyMfeg=",
       "netstandard.wasm": "sha256-jVzOxH5q4FYYDM01Qwoa/2MjK7CwbDVo6rPFjrBorII=",
       "System.Private.CoreLib.wasm": "sha256-d+N5gZbidgB9OgmPuYn1T6BQWHjajGzz+AvKnZJ+zmA=",
-      "FeelmwLogistika.Blazor.wasm": "sha256-6Xvm663YroQeW4MYL8LqKfzLmJGiAOChtjnN3nYvM7o="
+      "FeelmwLogistika.Blazor.wasm": "sha256-ZVVsxERrrdRXIQCJukawiiB+4gGDK37EYFnG63Kctek="
     },
     "pdb": {
-      "FeelmwLogistika.Blazor.pdb": "sha256-LUAWY7C5w870gzHbbeJiBLvuRCIGPV3M5LDfsJUK9Rc="
+      "FeelmwLogistika.Blazor.pdb": "sha256-0VO7XYzeh26Euu+dBzKpSSfw3/wVwzlq30hHVBAvfkU="
     }
   },
   "cacheBootResources": true,

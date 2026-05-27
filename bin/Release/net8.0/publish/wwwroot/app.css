@@ -679,7 +679,7 @@ h2 {
 }
 
     .blazor-error-boundary::after {
-        content: "An error has occurred."
+        content: "Errore bat gertatu da."
     }
 
 .darker-border-checkbox.form-check-input {

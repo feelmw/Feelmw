@@ -36,8 +36,8 @@ public sealed class LogistikaExcelService : ILogistikaExcelService
             "Gauak",
             "Datak",
             "Gelak",
-            "Checkin",
-            "Checkout",
+            "Sarrera",
+            "Irteera",
             "Dokumentazioa",
             "Harrera",
             "Gosaria",
@@ -46,7 +46,7 @@ public sealed class LogistikaExcelService : ILogistikaExcelService
             "Toailak",
             "Izarak",
             "Fidantza prezioa",
-            "Luggage prezioa",
+            "Maleten prezioa",
             "Instalazioak"
         ];
 

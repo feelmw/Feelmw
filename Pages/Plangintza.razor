@@ -31,7 +31,7 @@
             <label>Dokumentua <InputText class="form-control" @bind-Value="documentName" /></label>
             <label>Ikastetxea <InputText class="form-control" @bind-Value="ikastetxea" /></label>
             <label>
-                Ostala / Hotela
+                Ostatua / hotela
                 <select class="form-select" value="@hotelName" @onchange="HotelSelected">
                     <option value="">Aukeratu ostala</option>
                     @foreach (Hotelak item in hotelPresets)
@@ -41,7 +41,7 @@
                 </select>
             </label>
             <label>Hiria <input class="form-control" @bind="hiria" @bind:event="oninput" /></label>
-            <label>Helbidea / URL <input class="form-control" @bind="helbideaUrl" @bind:event="oninput" /></label>
+            <label>Helbidea / URLa <input class="form-control" @bind="helbideaUrl" @bind:event="oninput" /></label>
             <label>Egun kopurua <input type="number" class="form-control" value="@egunKop" min="1" @oninput="OnEgunKopInput" /></label>
         </div>
     </section>

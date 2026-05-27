@@ -332,7 +332,7 @@ public sealed class PlangintzaListakService(HttpClient httpClient, IJSRuntime js
     {
         if (!AllowedSheets.Contains(sheetName, StringComparer.OrdinalIgnoreCase))
         {
-            throw new InvalidOperationException($"La hoja {sheetName} no está permitida.");
+            throw new InvalidOperationException($"{sheetName} orria ez dago baimenduta.");
         }
     }
 

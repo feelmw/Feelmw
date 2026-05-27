@@ -27,7 +27,7 @@
     </div>
     <div class="actions left mt-3">
         <button class="btn btn-primary" @onclick="SaveAndExitAsync">Gorde</button>
-        <button class="btn btn-outline-primary" @onclick="CreateDocumentAndExitAsync">Sortu Dok.</button>
+        <button class="btn btn-outline-primary" @onclick="CreateDocumentAndExitAsync">Sortu dok.</button>
         <button class="btn btn-secondary" @onclick="Exit">Irten</button>
     </div>
 </div>
@@ -46,7 +46,7 @@
     private void StartNew()
     {
         State.StartNew(mota, documentName);
-        message = "Documento nuevo preparado.";
+        message = "Dokumentu berria prest dago.";
     }
 
     private async Task LoadExistingAsync(InputFileChangeEventArgs args)
@@ -57,7 +57,7 @@
         string cleanName = Path.GetFileNameWithoutExtension(file.Name).Replace("Logistika -", "", StringComparison.OrdinalIgnoreCase).Trim();
         State.StartEditing(string.IsNullOrWhiteSpace(cleanName) ? documentName : cleanName, datuak.Ostalak, datuak.Ekintzak, datuak.Garraioak);
         documentName = State.DokumentuIzena;
-        message = "Documento existente cargado.";
+        message = "Dokumentua kargatu da.";
     }
 
     private void CreateExcel()
@@ -65,7 +65,7 @@
         State.DokumentuIzena = string.IsNullOrWhiteSpace(documentName) ? "MyFeelLogistika" : documentName.Trim();
         State.AzkenExcelBytes = ExcelService.CreateWorkbook(State.ToDatuak());
         State.AzkenExcelFileName = $"Logistika - {State.DokumentuIzena}.xlsx";
-        message = "Excel intermedio preparado para descargar.";
+        message = "Excel fitxategia deskargatzeko prest dago.";
     }
 
     private async Task CreateDocumentAsync()
@@ -77,7 +77,7 @@
         State.AzkenMezuak.AddRange(result.Errors);
         State.AzkenDokumentuaBytes = result.Content.Length == 0 ? null : result.Content;
         State.AzkenDokumentuaFileName = result.FileName;
-        message = result.Success ? "Documento final preparado para descargar." : string.Join(" ", result.Errors);
+        message = result.Success ? "Azken dokumentua deskargatzeko prest dago." : string.Join(" ", result.Errors);
     }
 
     private async Task SaveAndExitAsync()

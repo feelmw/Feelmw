@@ -5,7 +5,7 @@
 
 <PageTitle>FeelMW - Plangintza Bidaia</PageTitle>
 
-<SectionHeader Title="@Title" Subtitle="Hotel → egunak → ekintzak" />
+<SectionHeader Title="@Title" Subtitle="Hotela, egunak eta ekintzak" />
 
 @if (!string.IsNullOrWhiteSpace(error))
 {
@@ -25,7 +25,7 @@
             </datalist>
         </label>
         <label>Hiria <input class="form-control" @bind="hiria" @bind:event="oninput" /></label>
-        <label>Helbidea / URL <input class="form-control" @bind="helbideaUrl" @bind:event="oninput" /></label>
+        <label>Helbidea / URLa <input class="form-control" @bind="helbideaUrl" @bind:event="oninput" /></label>
         <label>Egun kopurua <input type="number" class="form-control" value="@egunKop" min="1" @oninput="OnEgunKopInput" /></label>
         <label>Data hasiera <input type="date" class="form-control" value="@startDate.ToString("yyyy-MM-dd")" @oninput="OnStartDateInput" /></label>
     </div>
@@ -101,7 +101,7 @@
 
     <div class="actions left">
         <button class="btn btn-outline-primary" @onclick="AddActivity">+ Ekintza</button>
-        <button class="btn btn-primary" @onclick="Save">Zerrendara gehitu</button>
+        <button class="btn btn-primary" @onclick="Save">Gehitu zerrendara</button>
         <button class="btn btn-secondary" @onclick="@(() => Nav.NavigateTo("plangintza"))">Itzuli</button>
     </div>
 </div>

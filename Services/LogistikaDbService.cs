@@ -307,8 +307,8 @@ public sealed class LogistikaDbService(HttpClient httpClient, IJSRuntime jsRunti
             ParseInt(HeaderValue(row, headers, "gauak")),
             HeaderValue(row, headers, "datak"),
             HeaderValue(row, headers, "gelak"),
-            HeaderValue(row, headers, "checkin", "check in"),
-            HeaderValue(row, headers, "checkout", "check out"),
+            HeaderValue(row, headers, "sarrera", "checkin", "check in"),
+            HeaderValue(row, headers, "irteera", "checkout", "check out"),
             HeaderValue(row, headers, "dokumentazioa", "doc", "doku"),
             HeaderValue(row, headers, "harrera", "harreta", "harreta ordutegia", "harrera ordutegia"),
             HeaderValue(row, headers, "gosaria", "gosariates"),
@@ -317,7 +317,7 @@ public sealed class LogistikaDbService(HttpClient httpClient, IJSRuntime jsRunti
             Parseatu(HeaderValue(row, headers, "toailak", "toallak", "toallak barne", "toailak barne")),
             Parseatu(HeaderValue(row, headers, "izarak", "izarak barne")),
             HeaderValue(row, headers, "fidantza prezioa", "fidantza kuota", "fidantzaquota"),
-            HeaderValue(row, headers, "luggage prezioa", "luggage kuota", "luggagekuota", "luggage quota"),
+            HeaderValue(row, headers, "maleten prezioa", "luggage prezioa", "luggage kuota", "luggagekuota", "luggage quota"),
             HeaderValue(row, headers, "instalazioak", "inst"));
     }
 
@@ -499,8 +499,8 @@ public sealed class LogistikaDbService(HttpClient httpClient, IJSRuntime jsRunti
             "gauak" => ostala.Gauak.ToString(),
             "datak" => ostala.Datak,
             "gelak" => ostala.Gelak,
-            "checkin" => ostala.Checkin,
-            "checkout" => ostala.Checkout,
+            "sarrera" or "checkin" => ostala.Checkin,
+            "irteera" or "checkout" => ostala.Checkout,
             "dokumentazioa" or "doc" or "doku" => ostala.Dokumentazioa,
             "harrera" or "harreta" or "harretaordutegia" or "harreraordutegia" => ostala.Harrera,
             "gosaria" or "gosariates" => ostala.Gosaria,
@@ -509,7 +509,7 @@ public sealed class LogistikaDbService(HttpClient httpClient, IJSRuntime jsRunti
             "toailak" or "toallak" or "toallakbarne" or "toailakbarne" => BoolToBaiEz(ostala.Toailak),
             "izarak" or "izarakbarne" => BoolToBaiEz(ostala.Izarak),
             "fidantzaprezioa" or "fidantzakuota" => ostala.Fidantza,
-            "luggageprezioa" or "luggagekuota" or "luggagequota" => ostala.Luggage,
+            "maletenprezioa" or "luggageprezioa" or "luggagekuota" or "luggagequota" => ostala.Luggage,
             "instalazioak" or "inst" => ostala.Instalazioak,
             _ => ""
         };
@@ -648,7 +648,7 @@ public sealed class LogistikaDbService(HttpClient httpClient, IJSRuntime jsRunti
     {
         if (!AllowedSheets.Contains(sheetName, StringComparer.OrdinalIgnoreCase))
         {
-            throw new InvalidOperationException("Hoja no permitida.");
+            throw new InvalidOperationException("Orria ez dago baimenduta.");
         }
     }
 

@@ -33,7 +33,7 @@ else
                 <tr>
                     @foreach (string header in headers)
                     {
-                        <th>@header</th>
+                        <th>@DisplayHeader(header)</th>
                     }
                     <th>Ekintzak</th>
                 </tr>
@@ -125,7 +125,7 @@ else
             return;
         }
 
-        bool confirmed = await JS.InvokeAsync<bool>("confirm", "Ziur zaude fila hau ezabatu nahi duzula?");
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", "Ziur zaude errenkada hau ezabatu nahi duzula?");
         if (!confirmed)
         {
             return;
@@ -160,6 +160,24 @@ else
     private void UpdateCell(int row, int col, string value)
     {
         rows[row][col] = value;
+    }
+
+    private static string DisplayHeader(string header)
+    {
+        return NormalizeHeader(header) switch
+        {
+            "helbideaurl" => "Helbidea / URLa",
+            _ => header
+        };
+    }
+
+    private static string NormalizeHeader(string value)
+    {
+        return new string((value ?? "")
+            .Trim()
+            .ToLowerInvariant()
+            .Where(char.IsLetterOrDigit)
+            .ToArray());
     }
 
     private static List<List<string>> NormalizeRows(IReadOnlyList<IReadOnlyList<string>> sourceRows, int columns)

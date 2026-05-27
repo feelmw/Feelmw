@@ -15,7 +15,7 @@
 <EditForm Model="model" OnSubmit="Save">
     <div class="data-form">
         <section class="form-section">
-            <h2 class="form-section-title">Datos principales</h2>
+            <h2 class="form-section-title">Datu nagusiak</h2>
             <div class="form-grid section-grid">
                 <label>
                     Ostala
@@ -34,19 +34,19 @@
         </section>
 
         <section class="form-section">
-            <h2 class="form-section-title">Fechas y estancia</h2>
+            <h2 class="form-section-title">Datak eta egonaldia</h2>
             <div class="form-grid section-grid">
-                <label>DataHasiera <InputDate class="form-control" @bind-Value="dataHasiera" /></label>
-                <label>DataAmaiera <InputDate class="form-control" @bind-Value="dataAmaiera" /></label>
+                <label>Hasiera data <InputDate class="form-control" @bind-Value="dataHasiera" /></label>
+                <label>Amaiera data <InputDate class="form-control" @bind-Value="dataAmaiera" /></label>
                 <label>Gauak <input type="number" class="form-control" @bind="model.Gauak" @bind:event="oninput" min="1" /></label>
                 <label>Gelak <input class="form-control" @bind="model.Gelak" @bind:event="oninput" /></label>
-                <label>Checkin <input class="form-control" @bind="model.Checkin" @bind:event="oninput" /></label>
-                <label>Checkout <input class="form-control" @bind="model.Checkout" @bind:event="oninput" /></label>
+                <label>Sarrera <input class="form-control" @bind="model.Checkin" @bind:event="oninput" /></label>
+                <label>Irteera <input class="form-control" @bind="model.Checkout" @bind:event="oninput" /></label>
             </div>
         </section>
 
         <section class="form-section">
-            <h2 class="form-section-title">Comidas</h2>
+            <h2 class="form-section-title">Otorduak</h2>
             <div class="form-grid section-grid">
                 <label>Gosaria <input class="form-control" @bind="model.Gosaria" @bind:event="oninput" /></label>
                 <label>Bazkaria <input class="form-control" @bind="model.Bazkaria" @bind:event="oninput" /></label>
@@ -55,12 +55,12 @@
         </section>
 
         <section class="form-section">
-            <h2 class="form-section-title">Servicios y condiciones</h2>
+            <h2 class="form-section-title">Zerbitzuak eta baldintzak</h2>
             <div class="form-grid section-grid">
                 <label>Harrera <input class="form-control" @bind="model.Harrera" @bind:event="oninput" /></label>
                 <label>Dokumentazioa <input class="form-control" @bind="model.Dokumentazioa" @bind:event="oninput" /></label>
                 <label>Fidantza <input class="form-control" @bind="model.Fidantza" @bind:event="oninput" /></label>
-                <label>Luggage <input class="form-control" @bind="model.Luggage" @bind:event="oninput" /></label>
+                <label>Maleten prezioa <input class="form-control" @bind="model.Luggage" @bind:event="oninput" /></label>
                 <label>Instalazioak <input class="form-control" @bind="model.Instalazioak" @bind:event="oninput" /></label>
             </div>
             <div class="checks">
