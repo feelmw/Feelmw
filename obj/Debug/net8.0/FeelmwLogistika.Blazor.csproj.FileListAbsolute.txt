@@ -646,6 +646,7 @@ C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\FeelmwLogistika.Blazor.Assembl
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\FeelmwLogistika.Blazor.AssemblyInfo.cs
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\FeelmwLogistika.Blazor.csproj.CoreCompileInputs.cache
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\FeelmwLogistika.Blazor.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\FeelmwLogistika.Blazor.sourcelink.json
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\webcil\ClosedXML.wasm
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\webcil\ClosedXML.Parser.wasm
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\webcil\DocumentFormat.OpenXml.wasm
@@ -1074,7 +1075,6 @@ C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\FeelmwLogistika.Blazor.dll
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\refint\FeelmwLogistika.Blazor.dll
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\FeelmwLogistika.Blazor.pdb
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\ref\FeelmwLogistika.Blazor.dll
-C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\FeelmwLogistika.Blazor.sourcelink.json
-C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\534c32ndiq-glae0vtzmg.gz
-C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\ui8tuq1sgk-xemuriisfx.gz
-C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\182xb4kjn5-lv4zfy1yxp.gz
+C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\534c32ndiq-5szfaa75yl.gz
+C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\ui8tuq1sgk-1pa8y1tkpw.gz
+C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\182xb4kjn5-eoy2wucbrr.gz

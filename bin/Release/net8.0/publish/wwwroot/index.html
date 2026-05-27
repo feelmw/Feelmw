@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FeelMW</title>
+    <base href="/" />
+    <link rel="stylesheet" href="bootstrap/bootstrap.min.css?v=20260527-2" />
+    <link rel="stylesheet" href="app.css?v=20260527-2" />
+    <link rel="stylesheet" href="FeelmwLogistika.Blazor.styles.css?v=20260527-2" />
+    <style>
+        .page{display:flex;flex-direction:row;min-height:100vh}
+        main{flex:1;min-width:0}
+        .sidebar{background:#111;border-right:1px solid #2b2b2b;flex-shrink:0;min-height:100vh;position:sticky;top:0;width:188px}
+        .top-row{align-items:center;background:#0a0a0a;border-bottom:1px solid #2c2c2c;display:flex;height:3.35rem}
+        .navbar-toggler{display:none}
+        .nav-scrollable{display:block;height:calc(100vh - 3.35rem);overflow-y:auto}
+        .nav-item{font-size:.86rem;padding:0 .6rem .3rem}
+        .nav-item .nav-link{align-items:center;background:transparent;border:0;border-radius:5px;color:#cfcfcf;display:flex;height:2.35rem;line-height:1.1;padding:0 .75rem;text-decoration:none;width:100%}
+        .nav-item .nav-link.active{background:#f5f5f5;color:#111}
+        #blazor-error-ui{display:none}
+        @media (max-width:640px){.page{flex-direction:column}.sidebar{min-height:auto;position:relative;width:100%}.navbar-toggler{display:block}.nav-scrollable{display:none}.navbar-toggler:checked~.nav-scrollable{display:block}}
+    </style>
+    <link rel="icon" type="image/x-icon" href="images/mw_sello_negro.ico" />
+</head>
+
+<body>
+    <div id="app">Loading...</div>
+    <script>
+        window.downloadFileFromBase64 = (fileName, contentType, base64Data) => {
+            const byteCharacters = atob(base64Data);
+            const byteArrays = [];
+            for (let offset = 0; offset < byteCharacters.length; offset += 1024) {
+                const slice = byteCharacters.slice(offset, offset + 1024);
+                const byteNumbers = new Array(slice.length);
+                for (let i = 0; i < slice.length; i++) {
+                    byteNumbers[i] = slice.charCodeAt(i);
+                }
+                byteArrays.push(new Uint8Array(byteNumbers));
+            }
+
+            const blob = new Blob(byteArrays, { type: contentType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = url;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        };
+    </script>
+    <script src="_framework/blazor.webassembly.js"></script>
+</body>
+
+</html>

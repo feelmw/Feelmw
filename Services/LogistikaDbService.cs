@@ -277,20 +277,6 @@ public sealed class LogistikaDbService(HttpClient httpClient) : ILogistikaDbServ
 
     private static Ostalak ReadOstalaByHeader(IXLRangeRow row, IReadOnlyDictionary<string, int> headers)
     {
-        string fidantza = HeaderValue(row, headers, "fidantza");
-        string fidantzaKuota = HeaderValue(row, headers, "fidantza prezioa", "fidantza kuota", "fidantzaquota");
-        if (!string.IsNullOrWhiteSpace(fidantzaKuota) && !EzezkoaDa(fidantza))
-        {
-            fidantza = fidantzaKuota;
-        }
-
-        string luggage = HeaderValue(row, headers, "luggage", "luggage room");
-        string luggageKuota = HeaderValue(row, headers, "luggage prezioa", "luggage kuota", "luggagekuota", "luggage quota");
-        if (!string.IsNullOrWhiteSpace(luggageKuota) && !EzezkoaDa(luggage))
-        {
-            luggage = luggageKuota;
-        }
-
         return new Ostalak(
             HeaderValue(row, headers, "ostalaizena", "ostala", "izena", "hotela"),
             HeaderValue(row, headers, "bonoa"),
@@ -308,8 +294,8 @@ public sealed class LogistikaDbService(HttpClient httpClient) : ILogistikaDbServ
             HeaderValue(row, headers, "afaria", "afariates"),
             Parseatu(HeaderValue(row, headers, "toailak", "toallak", "toallak barne", "toailak barne")),
             Parseatu(HeaderValue(row, headers, "izarak", "izarak barne")),
-            fidantza,
-            luggage,
+            HeaderValue(row, headers, "fidantza prezioa", "fidantza kuota", "fidantzaquota"),
+            HeaderValue(row, headers, "luggage prezioa", "luggage kuota", "luggagekuota", "luggage quota"),
             HeaderValue(row, headers, "instalazioak", "inst"));
     }
 
@@ -327,15 +313,15 @@ public sealed class LogistikaDbService(HttpClient httpClient) : ILogistikaDbServ
             formatuBerria ? Gelaxka(row, 8) : Gelaxka(row, 4),
             formatuBerria ? Gelaxka(row, 9) : Gelaxka(row, 5),
             formatuBerria ? Gelaxka(row, 10) : Gelaxka(row, 6),
-            formatuBerria ? Gelaxka(row, 11) : Gelaxka(row, 9),
-            formatuBerria ? Gelaxka(row, 12) : Gelaxka(row, 13),
-            formatuBerria ? Gelaxka(row, 13) : Gelaxka(row, 14),
-            formatuBerria ? Gelaxka(row, 14) : Gelaxka(row, 15),
-            Parseatu(formatuBerria ? Gelaxka(row, 15) : Gelaxka(row, 10)),
-            Parseatu(formatuBerria ? Gelaxka(row, 16) : Gelaxka(row, 11)),
+            formatuBerria ? Gelaxka(row, 11) : Gelaxka(row, 8),
+            formatuBerria ? Gelaxka(row, 12) : Gelaxka(row, 12),
+            formatuBerria ? Gelaxka(row, 13) : Gelaxka(row, 13),
+            formatuBerria ? Gelaxka(row, 14) : Gelaxka(row, 14),
+            Parseatu(formatuBerria ? Gelaxka(row, 15) : Gelaxka(row, 9)),
+            Parseatu(formatuBerria ? Gelaxka(row, 16) : Gelaxka(row, 10)),
             ResolveFidantza(row, formatuBerria),
             ResolveLuggage(row, formatuBerria),
-            formatuBerria ? ResolveInstalazioak(row) : Gelaxka(row, 12));
+            formatuBerria ? ResolveInstalazioak(row) : Gelaxka(row, 11));
     }
 
     private static IEnumerable<Ekintzak> ReadEkintzak(IXLWorksheet sheet)
@@ -500,9 +486,7 @@ public sealed class LogistikaDbService(HttpClient httpClient) : ILogistikaDbServ
             "afaria" or "afariates" => ostala.Afaria,
             "toailak" or "toallak" or "toallakbarne" or "toailakbarne" => BoolToBaiEz(ostala.Toailak),
             "izarak" or "izarakbarne" => BoolToBaiEz(ostala.Izarak),
-            "fidantza" => string.IsNullOrWhiteSpace(ostala.Fidantza) ? "" : "Bai",
             "fidantzaprezioa" or "fidantzakuota" => ostala.Fidantza,
-            "luggage" or "luggageroom" => string.IsNullOrWhiteSpace(ostala.Luggage) ? "" : "Bai",
             "luggageprezioa" or "luggagekuota" or "luggagequota" => ostala.Luggage,
             "instalazioak" or "inst" => ostala.Instalazioak,
             _ => ""
@@ -612,7 +596,7 @@ public sealed class LogistikaDbService(HttpClient httpClient) : ILogistikaDbServ
             return true;
         }
 
-        for (int zutabea = 17; zutabea <= 21; zutabea++)
+        for (int zutabea = 17; zutabea <= 19; zutabea++)
         {
             if (!string.IsNullOrWhiteSpace(Gelaxka(row, zutabea)))
             {
@@ -623,39 +607,19 @@ public sealed class LogistikaDbService(HttpClient httpClient) : ILogistikaDbServ
         return false;
     }
 
+    private static string ResolveInstalazioak(IXLRangeRow row)
+    {
+        return Gelaxka(row, 19);
+    }
+
     private static string ResolveFidantza(IXLRangeRow row, bool formatuBerria)
     {
-        if (!formatuBerria)
-        {
-            return Parseatu(Gelaxka(row, 16)) ? Gelaxka(row, 17) : "";
-        }
-
-        return OstalaFormatuBerriaZaharraDa(row)
-            ? Parseatu(Gelaxka(row, 17)) ? Gelaxka(row, 18) : ""
-            : Gelaxka(row, 17);
+        return formatuBerria ? Gelaxka(row, 17) : Gelaxka(row, 15);
     }
 
     private static string ResolveLuggage(IXLRangeRow row, bool formatuBerria)
     {
-        if (!formatuBerria)
-        {
-            return Parseatu(Gelaxka(row, 7)) ? Gelaxka(row, 8) : "";
-        }
-
-        return OstalaFormatuBerriaZaharraDa(row)
-            ? Parseatu(Gelaxka(row, 19)) ? Gelaxka(row, 20) : ""
-            : Gelaxka(row, 18);
-    }
-
-    private static string ResolveInstalazioak(IXLRangeRow row)
-    {
-        return OstalaFormatuBerriaZaharraDa(row) ? Gelaxka(row, 21) : Gelaxka(row, 19);
-    }
-
-    private static bool OstalaFormatuBerriaZaharraDa(IXLRangeRow row)
-    {
-        return !string.IsNullOrWhiteSpace(Gelaxka(row, 20))
-            || !string.IsNullOrWhiteSpace(Gelaxka(row, 21));
+        return formatuBerria ? Gelaxka(row, 18) : Gelaxka(row, 7);
     }
 
     private static void EnsureAllowedSheet(string sheetName)
@@ -677,10 +641,4 @@ public sealed class LogistikaDbService(HttpClient httpClient) : ILogistikaDbServ
             || string.Equals(balioa, "sí", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static bool EzezkoaDa(string balioa)
-    {
-        return string.Equals(balioa, "Ez", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(balioa, "No", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(balioa, "False", StringComparison.OrdinalIgnoreCase);
-    }
 }

@@ -45,8 +45,8 @@ public sealed class LogistikaExcelService : ILogistikaExcelService
             "Afaria",
             "Toailak",
             "Izarak",
-            "Fidantza",
-            "Luggage",
+            "Fidantza prezioa",
+            "Luggage prezioa",
             "Instalazioak"
         ];
 

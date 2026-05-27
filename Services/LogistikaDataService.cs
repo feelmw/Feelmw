@@ -65,7 +65,7 @@ public sealed class LogistikaDataService(ILogistikaDbService logistikaDbService)
 
         foreach (IXLRangeRow row in sheet.RangeUsed()!.RowsUsed())
         {
-            if (ExcelRowHutsa(row, 21) || GoiburuaDa(Gelaxka(row, 1), "ostala", "izena", "hotela"))
+            if (ExcelRowHutsa(row, 17) || GoiburuaDa(Gelaxka(row, 1), "ostala", "izena", "hotela"))
             {
                 continue;
             }
@@ -88,15 +88,15 @@ public sealed class LogistikaDataService(ILogistikaDbService logistikaDbService)
                 formatuBerria ? Gelaxka(row, 8) : Gelaxka(row, 4),
                 formatuBerria ? Gelaxka(row, 9) : Gelaxka(row, 5),
                 formatuBerria ? Gelaxka(row, 10) : Gelaxka(row, 6),
-                formatuBerria ? Gelaxka(row, 11) : Gelaxka(row, 9),
-                formatuBerria ? Gelaxka(row, 12) : Gelaxka(row, 13),
-                formatuBerria ? Gelaxka(row, 13) : Gelaxka(row, 14),
-                formatuBerria ? Gelaxka(row, 14) : Gelaxka(row, 15),
-                Parseatu(formatuBerria ? Gelaxka(row, 15) : Gelaxka(row, 10)),
-                Parseatu(formatuBerria ? Gelaxka(row, 16) : Gelaxka(row, 11)),
+                formatuBerria ? Gelaxka(row, 11) : Gelaxka(row, 8),
+                formatuBerria ? Gelaxka(row, 12) : Gelaxka(row, 12),
+                formatuBerria ? Gelaxka(row, 13) : Gelaxka(row, 13),
+                formatuBerria ? Gelaxka(row, 14) : Gelaxka(row, 14),
+                Parseatu(formatuBerria ? Gelaxka(row, 15) : Gelaxka(row, 9)),
+                Parseatu(formatuBerria ? Gelaxka(row, 16) : Gelaxka(row, 10)),
                 ResolveFidantza(row, formatuBerria),
                 ResolveLuggage(row, formatuBerria),
-                formatuBerria ? ResolveInstalazioak(row) : Gelaxka(row, 12));
+                formatuBerria ? ResolveInstalazioak(row) : Gelaxka(row, 11));
         }
     }
 
@@ -199,7 +199,7 @@ public sealed class LogistikaDataService(ILogistikaDbService logistikaDbService)
             return true;
         }
 
-        for (int zutabea = 17; zutabea <= 21; zutabea++)
+        for (int zutabea = 17; zutabea <= 19; zutabea++)
         {
             if (!string.IsNullOrWhiteSpace(Gelaxka(row, zutabea)))
             {
@@ -210,39 +210,19 @@ public sealed class LogistikaDataService(ILogistikaDbService logistikaDbService)
         return false;
     }
 
+    private static string ResolveInstalazioak(IXLRangeRow row)
+    {
+        return Gelaxka(row, 19);
+    }
+
     private static string ResolveFidantza(IXLRangeRow row, bool formatuBerria)
     {
-        if (!formatuBerria)
-        {
-            return Parseatu(Gelaxka(row, 16)) ? Gelaxka(row, 17) : "";
-        }
-
-        return OstalaFormatuBerriaZaharraDa(row)
-            ? Parseatu(Gelaxka(row, 17)) ? Gelaxka(row, 18) : ""
-            : Gelaxka(row, 17);
+        return formatuBerria ? Gelaxka(row, 17) : Gelaxka(row, 15);
     }
 
     private static string ResolveLuggage(IXLRangeRow row, bool formatuBerria)
     {
-        if (!formatuBerria)
-        {
-            return Parseatu(Gelaxka(row, 7)) ? Gelaxka(row, 8) : "";
-        }
-
-        return OstalaFormatuBerriaZaharraDa(row)
-            ? Parseatu(Gelaxka(row, 19)) ? Gelaxka(row, 20) : ""
-            : Gelaxka(row, 18);
-    }
-
-    private static string ResolveInstalazioak(IXLRangeRow row)
-    {
-        return OstalaFormatuBerriaZaharraDa(row) ? Gelaxka(row, 21) : Gelaxka(row, 19);
-    }
-
-    private static bool OstalaFormatuBerriaZaharraDa(IXLRangeRow row)
-    {
-        return !string.IsNullOrWhiteSpace(Gelaxka(row, 20))
-            || !string.IsNullOrWhiteSpace(Gelaxka(row, 21));
+        return formatuBerria ? Gelaxka(row, 18) : Gelaxka(row, 7);
     }
 
     private static bool Parseatu(string balioa)
