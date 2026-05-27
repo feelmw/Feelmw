@@ -21,7 +21,7 @@
 
 @if (headers.Count == 0)
 {
-    <EmptyState Title="Daturik ez" Message="Hoja hutsik dago." />
+    <EmptyState Title="Daturik ez" Message="Orria hutsik dago." />
 }
 else
 {
@@ -33,6 +33,7 @@ else
                     {
                         <th>@header</th>
                     }
+                    <th>Ekintzak</th>
                 </tr>
             </thead>
             <tbody>
@@ -47,6 +48,12 @@ else
                                 <input class="form-control db-cell-input" value="@rows[currentRow][currentCol]" @oninput="e => UpdateCell(currentRow, currentCol, e.Value?.ToString() ?? string.Empty)" />
                             </td>
                         }
+                        <td>
+                            @if (currentRow < existingRowCount)
+                            {
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteRowAsync(currentRow)">Ezabatu</button>
+                            }
+                        </td>
                     </tr>
                 }
             </tbody>
@@ -59,6 +66,7 @@ else
     private List<string> headers = [];
     private List<List<string>> rows = [];
     private string? message;
+    private int existingRowCount;
 
     protected override async Task OnInitializedAsync()
     {
@@ -72,14 +80,16 @@ else
         {
             headers = [];
             rows = [];
+            existingRowCount = 0;
             message = null;
             return;
         }
 
         headers = sheetRows[0]
-            .Select((header, index) => string.IsNullOrWhiteSpace(header) ? $"Column {index + 1}" : header)
+            .Select((header, index) => string.IsNullOrWhiteSpace(header) ? $"Zutabe {index + 1}" : header)
             .ToList();
         rows = NormalizeRows(sheetRows.Skip(1).ToList(), headers.Count);
+        existingRowCount = rows.Count;
         AddBlankRow();
         message = null;
     }
@@ -104,6 +114,40 @@ else
         await JS.InvokeVoidAsync("downloadFileFromBase64", "Logistika.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", Convert.ToBase64String(bytes));
         await LoadAsync();
         message = "Logistika.xlsx deskargatuta.";
+    }
+
+    private async Task DeleteRowAsync(int rowIndex)
+    {
+        if (rowIndex < 0 || rowIndex >= existingRowCount)
+        {
+            return;
+        }
+
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", "Ziur zaude fila hau ezabatu nahi duzula?");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        rows.RemoveAt(rowIndex);
+        await SaveRowsAsync();
+        byte[] bytes = await DbService.ExportWorkbookAsync();
+        await JS.InvokeVoidAsync("downloadFileFromBase64", "Logistika.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", Convert.ToBase64String(bytes));
+        await LoadAsync();
+        message = "Errenkada ezabatuta.";
+    }
+
+    private async Task SaveRowsAsync()
+    {
+        List<List<string>> rowsToSave =
+        [
+            headers,
+            .. rows
+                .Where(row => row.Any(cell => !string.IsNullOrWhiteSpace(cell)))
+                .Select(row => row.ToList())
+        ];
+
+        await DbService.SaveSheetAsync(selectedSheet, rowsToSave);
     }
 
     private void UpdateCell(int row, int col, string value)

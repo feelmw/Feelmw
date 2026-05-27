@@ -1075,6 +1075,6 @@ C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\FeelmwLogistika.Blazor.dll
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\refint\FeelmwLogistika.Blazor.dll
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\FeelmwLogistika.Blazor.pdb
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\ref\FeelmwLogistika.Blazor.dll
-C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\534c32ndiq-l9xfwae1py.gz
-C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\ui8tuq1sgk-8dmu06gx1c.gz
-C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\182xb4kjn5-250a27ogzy.gz
+C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\534c32ndiq-epep8saerv.gz
+C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\ui8tuq1sgk-j5a7ipi965.gz
+C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\182xb4kjn5-16uo2xlt0s.gz

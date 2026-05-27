@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FeelmwLogistika.Blazor")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ee41e767d765cc89d0ac0d2b7dbb23b39cb6ae7a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0aa778ef3df62640bd791a3fc0389ababcb03dd7")]
 [assembly: System.Reflection.AssemblyProductAttribute("FeelmwLogistika.Blazor")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FeelmwLogistika.Blazor")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
