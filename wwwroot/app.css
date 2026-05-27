@@ -334,7 +334,25 @@ h1:focus {
     margin-bottom: 1rem;
 }
 
-.data-form .form-grid label {
+.form-columns {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    margin-bottom: 1.25rem;
+}
+
+.form-column {
+    border: 1px solid #e2e2df;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+    min-width: 0;
+    padding: 1.25rem;
+}
+
+.data-form .form-grid label,
+.data-form .form-column label {
     color: #242424;
     display: flex;
     flex-direction: column;
@@ -350,6 +368,11 @@ h1:focus {
     min-width: 220px;
     padding: .58rem .7rem;
     width: 100%;
+}
+
+.form-column .form-control,
+.form-column .form-select {
+    min-width: 0;
 }
 
 .form-grid .wide {
@@ -382,8 +405,13 @@ h1:focus {
         padding: 1rem;
     }
 
+    .form-columns,
     .form-grid {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    .form-column {
+        padding: 1rem;
     }
 
     .data-form .form-control,

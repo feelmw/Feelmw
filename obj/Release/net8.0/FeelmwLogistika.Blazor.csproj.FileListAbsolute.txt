@@ -1075,6 +1075,6 @@ C:\Users\mikel\Escritorio\FeelMW\obj\Release\net8.0\refint\FeelmwLogistika.Blazo
 C:\Users\mikel\Escritorio\FeelMW\obj\Release\net8.0\FeelmwLogistika.Blazor.pdb
 C:\Users\mikel\Escritorio\FeelMW\obj\Release\net8.0\ref\FeelmwLogistika.Blazor.dll
 C:\Users\mikel\Escritorio\FeelMW\obj\Release\net8.0\FeelmwLogistika.Blazor.sourcelink.json
-C:\Users\mikel\Escritorio\FeelMW\obj\Release\net8.0\compressed\534c32ndiq-v2zpf9kmeo.gz
-C:\Users\mikel\Escritorio\FeelMW\obj\Release\net8.0\compressed\ui8tuq1sgk-kolua4kze1.gz
-C:\Users\mikel\Escritorio\FeelMW\obj\Release\net8.0\compressed\182xb4kjn5-lyagj124z1.gz
+C:\Users\mikel\Escritorio\FeelMW\obj\Release\net8.0\compressed\534c32ndiq-4ttxtzdqh4.gz
+C:\Users\mikel\Escritorio\FeelMW\obj\Release\net8.0\compressed\ui8tuq1sgk-o7679frcgz.gz
+C:\Users\mikel\Escritorio\FeelMW\obj\Release\net8.0\compressed\182xb4kjn5-jflbs8gvfb.gz

@@ -13,15 +13,19 @@
 
 <EditForm Model="model" OnSubmit="Save">
     <div class="data-form">
-        <div class="form-grid">
-            <label>GarraioaIzena <input class="form-control" @bind="model.GarraioaIzena" @bind:event="oninput" /></label>
-            <label>Eguna <input class="form-control" @bind="model.Eguna" @bind:event="oninput" /></label>
-            <label>Ordutegia <input class="form-control" @bind="model.Ordutegia" @bind:event="oninput" /></label>
-            <label>Lokalizatzailea <input class="form-control" @bind="model.Lokalizatzailea" @bind:event="oninput" /></label>
-            <label>Kontaktua <input class="form-control" @bind="model.Kontaktua" @bind:event="oninput" /></label>
-            <label>Elkargunea <input class="form-control" @bind="model.Elkargunea" @bind:event="oninput" /></label>
-            <label>Eginbeharrak <input class="form-control" @bind="model.Eginbeharrak" @bind:event="oninput" /></label>
-            <label>Informazioa <input class="form-control" @bind="model.Informazioa" @bind:event="oninput" /></label>
+        <div class="form-columns">
+            <div class="form-column">
+                <label>GarraioaIzena <input class="form-control" @bind="model.GarraioaIzena" @bind:event="oninput" /></label>
+                <label>Eguna <input class="form-control" @bind="model.Eguna" @bind:event="oninput" /></label>
+                <label>Ordutegia <input class="form-control" @bind="model.Ordutegia" @bind:event="oninput" /></label>
+                <label>Lokalizatzailea <input class="form-control" @bind="model.Lokalizatzailea" @bind:event="oninput" /></label>
+            </div>
+            <div class="form-column">
+                <label>Kontaktua <input class="form-control" @bind="model.Kontaktua" @bind:event="oninput" /></label>
+                <label>Elkargunea <input class="form-control" @bind="model.Elkargunea" @bind:event="oninput" /></label>
+                <label>Eginbeharrak <input class="form-control" @bind="model.Eginbeharrak" @bind:event="oninput" /></label>
+                <label>Informazioa <input class="form-control" @bind="model.Informazioa" @bind:event="oninput" /></label>
+            </div>
         </div>
         <div class="actions left">
             <button class="btn btn-primary" type="submit">Gorde</button>
