@@ -1,16 +1,8 @@
 @page "/dokumentuak/berria"
 @page "/dokumentazioa"
-@inject IDocumentWorkflowService WorkflowService
 
 <PageTitle>FeelMW - Dokumentua</PageTitle>
 
-<SectionHeader Title="Dokumentazioa" Subtitle="Menu de documentacion" />
-
-<div class="action-panel">
-    <p>Preparado para conectar la documentacion sin migrar aun la logica interna.</p>
-    <button class="btn btn-primary" @onclick="CrearAsync">Crear documento</button>
+<div class="placeholder-page">
+    <p>Garatzeko</p>
 </div>
-
-@code {
-    private Task CrearAsync() => WorkflowService.CreateNewDocumentAsync();
-}
