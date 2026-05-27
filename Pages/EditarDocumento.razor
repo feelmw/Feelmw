@@ -7,11 +7,13 @@
 
 <PageTitle>FeelMW - Editatu</PageTitle>
 
-<SectionHeader Title="Editatu dok." Subtitle="Aukeratu Excel edo dokumentua" />
+<SectionHeader Title="Editatu dok." Subtitle="Aukeratu Excela" />
 
 <div class="action-panel">
-    <p>Aukeratu Excel edo dokumentu bat datuak kargatzeko.</p>
-    <InputFile OnChange="SeleccionarArchivoAsync" accept=".xlsx,.xls,.doc,.docx" />
+    <p>Aukeratu Excela datuak kargatzeko.</p>
+    <label class="btn btn-outline-primary" for="editatu-file">Fitxategia aukeratu</label>
+    <span class="ms-2">@selectedFileName</span>
+    <InputFile id="editatu-file" class="visually-hidden" OnChange="SeleccionarArchivoAsync" accept=".xlsx,.xls,.doc,.docx" />
 
     @if (loading)
     {
@@ -28,6 +30,7 @@
     private const long MaxFileSize = 20 * 1024 * 1024;
     private bool loading;
     private string? message;
+    private string selectedFileName = "Ez da fitxategirik aukeratu";
 
     private async Task SeleccionarArchivoAsync(InputFileChangeEventArgs args)
     {
@@ -37,6 +40,7 @@
         }
 
         IBrowserFile file = args.File;
+        selectedFileName = file.Name;
         string fileName = file.Name;
         string extension = Path.GetExtension(fileName);
         string? kind = DetectKind(fileName);
