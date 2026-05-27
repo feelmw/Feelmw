@@ -87,7 +87,7 @@
 }
 
 .nav-scrollable {
-    display: none;
+    display: block;
 }
 
 .navbar-toggler:checked ~ .nav-scrollable {
@@ -103,5 +103,15 @@
         display: block;
         height: calc(100vh - 3.35rem);
         overflow-y: auto;
+    }
+}
+
+@media (max-width: 640px) {
+    .nav-scrollable {
+        display: none;
+    }
+
+    .navbar-toggler:checked ~ .nav-scrollable {
+        display: block;
     }
 }

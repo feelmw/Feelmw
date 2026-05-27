@@ -1,6 +1,6 @@
 .page[b-p1v5ej5gkv] {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     min-height: 100vh;
     position: relative;
 }
@@ -14,22 +14,25 @@ main[b-p1v5ej5gkv] {
     background: #111;
     border-right: 1px solid #2b2b2b;
     flex-shrink: 0;
+    min-height: 100vh;
+    position: sticky;
+    top: 0;
+    width: 188px;
 }
 
-@media (min-width: 641px) {
+article.content[b-p1v5ej5gkv] {
+    padding: 1rem 1.25rem 1.5rem;
+}
+
+@media (max-width: 640px) {
     .page[b-p1v5ej5gkv] {
-        flex-direction: row;
+        flex-direction: column;
     }
 
     .sidebar[b-p1v5ej5gkv] {
-        width: 188px;
-        height: 100vh;
-        position: sticky;
-        top: 0;
-    }
-
-    article.content[b-p1v5ej5gkv] {
-        padding: 1rem 1.25rem 1.5rem;
+        min-height: auto;
+        position: relative;
+        width: 100%;
     }
 }
 
