@@ -81,7 +81,7 @@
             <h2>Ekintzak</h2>
             <div class="actions left">
                 <button class="btn btn-outline-primary" @onclick="AddActivity">+ Ekintza</button>
-                <button class="btn btn-outline-secondary" @onclick="AddMotaAsync">+ Mota</button>
+                <button class="btn btn-outline-secondary" @onclick="ShowAddMotaModal">+ Mota</button>
             </div>
         </div>
         <div class="db-table-wrap">
@@ -141,6 +141,33 @@
     </section>
 </div>
 
+@if (showAddMotaModal)
+{
+    <div class="modal-backdrop-app" @onclick="CloseAddMotaModal">
+        <div class="modal-card-app" @onclick:stopPropagation="true">
+            <h2>Ekintza berria gehitu</h2>
+
+            @if (!string.IsNullOrWhiteSpace(addMotaError))
+            {
+                <div class="alert alert-danger">@addMotaError</div>
+            }
+
+            <label>
+                Izena
+                <InputText class="form-control" @bind-Value="newMotaIzena" />
+            </label>
+            <label>
+                Deskribapena
+                <InputTextArea class="form-control" @bind-Value="newMotaDeskribapena" />
+            </label>
+            <div class="actions left modal-actions-app">
+                <button class="btn btn-primary" @onclick="SaveMotaAsync" disabled="@savingMota">Gorde</button>
+                <button class="btn btn-secondary" @onclick="CloseAddMotaModal" disabled="@savingMota">Utzi</button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private List<Hotelak> hotelPresets = [];
     private List<EkintzakPlan> activityPresets = [];
@@ -155,6 +182,11 @@
     private List<EkintzaDatuak> ekintzak = [];
     private string? message;
     private string? error;
+    private bool showAddMotaModal;
+    private bool savingMota;
+    private string newMotaIzena = "";
+    private string newMotaDeskribapena = "";
+    private string? addMotaError;
     private List<string> DayOptions => egunak.Count == 0
         ? ["Eguna1"]
         : egunak.Select(e => string.IsNullOrWhiteSpace(e.Data) ? $"Eguna{e.Eguna}" : e.Data).ToList();
@@ -254,19 +286,63 @@
         }
     }
 
-    private async Task AddMotaAsync()
+    private void ShowAddMotaModal()
     {
-        EkintzaDatuak? source = ekintzak.LastOrDefault(e => !string.IsNullOrWhiteSpace(e.Mota));
-        if (source is null)
+        message = null;
+        error = null;
+        addMotaError = null;
+        showAddMotaModal = true;
+    }
+
+    private void CloseAddMotaModal()
+    {
+        if (savingMota)
         {
-            message = "+ Mota prest dago; idatzi lehenengo Mota bat ekintza batean.";
             return;
         }
 
-        EkintzakPlan plan = new(source.Mota, source.Deskribapena);
-        await ListakService.AddEkintzaAsync(plan);
-        activityPresets.Add(plan);
-        message = "Mota berria gehituta.";
+        showAddMotaModal = false;
+        ClearMotaModal();
+    }
+
+    private async Task SaveMotaAsync()
+    {
+        addMotaError = null;
+        message = null;
+        error = null;
+
+        string izena = newMotaIzena.Trim();
+        if (string.IsNullOrWhiteSpace(izena))
+        {
+            addMotaError = "Izena derrigorrezkoa da.";
+            return;
+        }
+
+        try
+        {
+            savingMota = true;
+            EkintzakPlan plan = new(izena, newMotaDeskribapena.Trim());
+            await ListakService.AddEkintzaAsync(plan);
+            activityPresets = (await ListakService.ReadEkintzakAsync()).ToList();
+            showAddMotaModal = false;
+            ClearMotaModal();
+            message = "Ekintza behar bezala gehitu da.";
+        }
+        catch
+        {
+            addMotaError = "Ezin izan da ekintza gehitu.";
+        }
+        finally
+        {
+            savingMota = false;
+        }
+    }
+
+    private void ClearMotaModal()
+    {
+        newMotaIzena = "";
+        newMotaDeskribapena = "";
+        addMotaError = null;
     }
 
     private void SaveToList()
