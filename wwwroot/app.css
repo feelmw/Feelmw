@@ -379,6 +379,37 @@ h1:focus {
     grid-column: span 2;
 }
 
+.form-section {
+    border: 1px solid #e2e2df;
+    border-radius: 6px;
+    margin-bottom: 1.1rem;
+    padding: 1.15rem;
+}
+
+.form-section-title {
+    color: #111;
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 .9rem;
+}
+
+.section-grid {
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+    margin-bottom: 0;
+}
+
+.form-section .checks {
+    border-top: 1px solid #ececea;
+    margin: 1rem 0 0;
+    padding-top: .85rem;
+}
+
+.form-actions {
+    border-top: 1px solid #ececea;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+}
+
 .checks label {
     align-items: center;
     display: inline-flex;
@@ -417,6 +448,22 @@ h1:focus {
     .data-form .form-control,
     .data-form .form-select {
         min-width: 0;
+    }
+}
+
+@media (max-width: 1100px) and (min-width: 641px) {
+    .section-grid {
+        grid-template-columns: repeat(2, minmax(220px, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .form-section {
+        padding: 1rem;
+    }
+
+    .section-grid {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
