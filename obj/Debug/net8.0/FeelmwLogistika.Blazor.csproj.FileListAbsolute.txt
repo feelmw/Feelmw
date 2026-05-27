@@ -1065,9 +1065,6 @@ C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\m6r43q25pi-tjcz0u77
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\ra0j57mzgb-tptq2av103.gz
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\kk8da0uo9o-lfu7j35m59.gz
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\yh2suo9b5h-oyz0vx2fzb.gz
-C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\534c32ndiq-xfwfpsgciz.gz
-C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\ui8tuq1sgk-l6wp57obls.gz
-C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\182xb4kjn5-eieju71fky.gz
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\staticwebassets.build.json
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\staticwebassets.build.json.cache
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\staticwebassets.development.json
@@ -1077,3 +1074,7 @@ C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\FeelmwLogistika.Blazor.dll
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\refint\FeelmwLogistika.Blazor.dll
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\FeelmwLogistika.Blazor.pdb
 C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\ref\FeelmwLogistika.Blazor.dll
+C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\FeelmwLogistika.Blazor.sourcelink.json
+C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\534c32ndiq-u120yokg4i.gz
+C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\ui8tuq1sgk-nc6zv4hodj.gz
+C:\Users\mikel\Escritorio\FeelMW\obj\Debug\net8.0\compressed\182xb4kjn5-yzmem2ge2l.gz
