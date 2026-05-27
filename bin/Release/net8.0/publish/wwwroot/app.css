@@ -612,6 +612,51 @@ h2 {
     color: #242424;
 }
 
+.modal-backdrop-app {
+    align-items: center;
+    background: rgba(0, 0, 0, .42);
+    display: flex;
+    inset: 0;
+    justify-content: center;
+    padding: 1rem;
+    position: fixed;
+    z-index: 1000;
+}
+
+.modal-card-app {
+    background: #fff;
+    border: 1px solid #d8d8d4;
+    border-radius: 8px;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, .24);
+    display: grid;
+    gap: .9rem;
+    max-width: 460px;
+    padding: 1.25rem;
+    width: min(100%, 460px);
+}
+
+.modal-card-app h2 {
+    font-size: 1.2rem;
+    margin: 0;
+}
+
+.modal-card-app label {
+    color: #242424;
+    display: flex;
+    flex-direction: column;
+    font-size: .92rem;
+    font-weight: 600;
+    gap: .38rem;
+}
+
+.modal-card-app textarea.form-control {
+    min-height: 6rem;
+}
+
+.modal-actions-app {
+    margin-top: .25rem;
+}
+
 .placeholder-page {
     align-items: center;
     display: flex;

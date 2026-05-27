@@ -1,12 +1,14 @@
 using ClosedXML.Excel;
 using FeelmwLogistika.Blazor.Models;
+using Microsoft.JSInterop;
 
 namespace FeelmwLogistika.Blazor.Services;
 
-public sealed class PlangintzaListakService(HttpClient httpClient) : IPlangintzaListakService
+public sealed class PlangintzaListakService(HttpClient httpClient, IJSRuntime jsRuntime) : IPlangintzaListakService
 {
     private static readonly SemaphoreSlim FileLock = new(1, 1);
     private static readonly string[] AllowedSheets = ["Ostalak", "Ekintzak"];
+    private const string StorageKey = "FeelMW.Plangintza.xlsx";
     private byte[]? workbookBytes;
 
     public async Task<PlangintzaListak> ReadAllAsync(CancellationToken cancellationToken = default)
@@ -113,7 +115,7 @@ public sealed class PlangintzaListakService(HttpClient httpClient) : IPlangintza
             int row = NextRow(sheet);
             WriteByHeader(sheet, row, headers, "Izena", ekintza.Mota);
             WriteByHeader(sheet, row, headers, "Deskribapena", ekintza.Deskribapena);
-            SaveWorkbook(workbook);
+            await SaveWorkbookAsync(workbook);
         }
         finally
         {
@@ -174,7 +176,7 @@ public sealed class PlangintzaListakService(HttpClient httpClient) : IPlangintza
                 }
             }
 
-            SaveWorkbook(workbook);
+            await SaveWorkbookAsync(workbook);
         }
         finally
         {
@@ -200,15 +202,35 @@ public sealed class PlangintzaListakService(HttpClient httpClient) : IPlangintza
 
     private async Task<XLWorkbook> OpenWorkbookAsync(CancellationToken cancellationToken)
     {
-        workbookBytes ??= await httpClient.GetByteArrayAsync("data/Plangintza.xlsx", cancellationToken);
+        if (workbookBytes is null)
+        {
+            string? saved = await ReadStoredWorkbookAsync();
+            workbookBytes = !string.IsNullOrWhiteSpace(saved)
+                ? Convert.FromBase64String(saved)
+                : await httpClient.GetByteArrayAsync("data/Plangintza.xlsx", cancellationToken);
+        }
+
         return new XLWorkbook(new MemoryStream(workbookBytes, writable: false));
     }
 
-    private void SaveWorkbook(XLWorkbook workbook)
+    private async Task SaveWorkbookAsync(XLWorkbook workbook)
     {
         using MemoryStream stream = new();
         workbook.SaveAs(stream);
         workbookBytes = stream.ToArray();
+        await jsRuntime.InvokeVoidAsync("localStorage.setItem", StorageKey, Convert.ToBase64String(workbookBytes));
+    }
+
+    private async Task<string?> ReadStoredWorkbookAsync()
+    {
+        try
+        {
+            return await jsRuntime.InvokeAsync<string?>("localStorage.getItem", StorageKey);
+        }
+        catch (JSException)
+        {
+            return null;
+        }
     }
 
     private static Dictionary<string, int> ReadHeaders(IXLWorksheet sheet)

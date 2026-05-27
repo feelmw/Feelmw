@@ -11,6 +11,8 @@
     <div class="alert alert-info">@message</div>
 }
 
+<div class="alert alert-info">Fitxategia ezin da zuzenean aldatu nabigatzailetik. Aldaketak nabigatzailean gordeko dira.</div>
+
 <div class="toolbar">
     <select class="form-select" @bind="selectedSheet" @bind:after="LoadAsync">
         <option value="Ostalak">Ostalak</option>
@@ -104,19 +106,16 @@ else
 
     private async Task SaveAsync()
     {
-        List<List<string>> rowsToSave =
-        [
-            headers,
-            .. rows
-                .Where(row => row.Any(cell => !string.IsNullOrWhiteSpace(cell)))
-                .Select(row => row.ToList())
-        ];
-
-        await DbService.SaveSheetAsync(selectedSheet, rowsToSave);
-        byte[] bytes = await DbService.ExportWorkbookAsync();
-        await JS.InvokeVoidAsync("downloadFileFromBase64", "Plangintza.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", Convert.ToBase64String(bytes));
-        await LoadAsync();
-        message = "Plangintza.xlsx deskargatuta.";
+        try
+        {
+            await SaveRowsAsync();
+            await LoadAsync();
+            message = "Gordeta.";
+        }
+        catch
+        {
+            message = "Ezin izan da fitxategia eguneratu.";
+        }
     }
 
     private async Task DeleteRowAsync(int rowIndex)
@@ -132,12 +131,17 @@ else
             return;
         }
 
-        rows.RemoveAt(rowIndex);
-        await SaveRowsAsync();
-        byte[] bytes = await DbService.ExportWorkbookAsync();
-        await JS.InvokeVoidAsync("downloadFileFromBase64", "Plangintza.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", Convert.ToBase64String(bytes));
-        await LoadAsync();
-        message = "Errenkada ezabatuta.";
+        try
+        {
+            rows.RemoveAt(rowIndex);
+            await SaveRowsAsync();
+            await LoadAsync();
+            message = "Ezabatuta.";
+        }
+        catch
+        {
+            message = "Ezin izan da fitxategia eguneratu.";
+        }
     }
 
     private async Task SaveRowsAsync()

@@ -1,12 +1,14 @@
 using ClosedXML.Excel;
 using FeelmwLogistika.Blazor.Models;
+using Microsoft.JSInterop;
 
 namespace FeelmwLogistika.Blazor.Services;
 
-public sealed class LogistikaDbService(HttpClient httpClient) : ILogistikaDbService
+public sealed class LogistikaDbService(HttpClient httpClient, IJSRuntime jsRuntime) : ILogistikaDbService
 {
     private static readonly SemaphoreSlim FileLock = new(1, 1);
     private static readonly string[] AllowedSheets = ["Ostalak", "Ekintzak", "Garraioak"];
+    private const string StorageKey = "FeelMW.Logistika.xlsx";
     private byte[]? workbookBytes;
 
     public async Task<IReadOnlyList<Ostalak>> ReadOstalakAsync(CancellationToken cancellationToken = default)
@@ -106,7 +108,7 @@ public sealed class LogistikaDbService(HttpClient httpClient) : ILogistikaDbServ
                     ostala.Instalazioak
                 ]);
             }
-            SaveWorkbook(workbook);
+            await SaveWorkbookAsync(workbook);
         }
         finally
         {
@@ -148,7 +150,7 @@ public sealed class LogistikaDbService(HttpClient httpClient) : ILogistikaDbServ
                     ekintza.Lokali
                 ]);
             }
-            SaveWorkbook(workbook);
+            await SaveWorkbookAsync(workbook);
         }
         finally
         {
@@ -209,7 +211,7 @@ public sealed class LogistikaDbService(HttpClient httpClient) : ILogistikaDbServ
                 }
             }
 
-            SaveWorkbook(workbook);
+            await SaveWorkbookAsync(workbook);
         }
         finally
         {
@@ -235,15 +237,35 @@ public sealed class LogistikaDbService(HttpClient httpClient) : ILogistikaDbServ
 
     private async Task<XLWorkbook> OpenWorkbookAsync(CancellationToken cancellationToken)
     {
-        workbookBytes ??= await httpClient.GetByteArrayAsync("data/Logistika.xlsx", cancellationToken);
+        if (workbookBytes is null)
+        {
+            string? saved = await ReadStoredWorkbookAsync();
+            workbookBytes = !string.IsNullOrWhiteSpace(saved)
+                ? Convert.FromBase64String(saved)
+                : await httpClient.GetByteArrayAsync("data/Logistika.xlsx", cancellationToken);
+        }
+
         return new XLWorkbook(new MemoryStream(workbookBytes, writable: false));
     }
 
-    private void SaveWorkbook(XLWorkbook workbook)
+    private async Task SaveWorkbookAsync(XLWorkbook workbook)
     {
         using MemoryStream stream = new();
         workbook.SaveAs(stream);
         workbookBytes = stream.ToArray();
+        await jsRuntime.InvokeVoidAsync("localStorage.setItem", StorageKey, Convert.ToBase64String(workbookBytes));
+    }
+
+    private async Task<string?> ReadStoredWorkbookAsync()
+    {
+        try
+        {
+            return await jsRuntime.InvokeAsync<string?>("localStorage.getItem", StorageKey);
+        }
+        catch (JSException)
+        {
+            return null;
+        }
     }
 
     private static IEnumerable<Ostalak> ReadOstalak(IXLWorksheet sheet)
