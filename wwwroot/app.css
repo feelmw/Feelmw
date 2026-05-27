@@ -304,7 +304,7 @@ h1:focus {
     border: 1px solid #ddd;
     border-radius: 8px;
     margin-bottom: 1rem;
-    padding: 1rem;
+    padding: 1.35rem;
 }
 
 .plangintza-board {
@@ -329,9 +329,27 @@ h1:focus {
 
 .form-grid {
     display: grid;
-    gap: .6rem;
-    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-    margin-bottom: .75rem;
+    gap: 1rem 1.15rem;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    margin-bottom: 1rem;
+}
+
+.data-form .form-grid label {
+    color: #242424;
+    display: flex;
+    flex-direction: column;
+    font-size: .92rem;
+    font-weight: 600;
+    gap: .38rem;
+    min-width: 0;
+}
+
+.data-form .form-control,
+.data-form .form-select {
+    min-height: 2.45rem;
+    min-width: 220px;
+    padding: .58rem .7rem;
+    width: 100%;
 }
 
 .form-grid .wide {
@@ -342,6 +360,36 @@ h1:focus {
     align-items: center;
     display: inline-flex;
     gap: .35rem;
+}
+
+.data-form .checks {
+    margin-bottom: 1.15rem;
+    margin-top: .15rem;
+}
+
+.data-form .actions {
+    margin-top: .15rem;
+}
+
+@media (min-width: 1200px) {
+    .data-form .form-grid {
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .data-form {
+        padding: 1rem;
+    }
+
+    .form-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .data-form .form-control,
+    .data-form .form-select {
+        min-width: 0;
+    }
 }
 
 .actions {
