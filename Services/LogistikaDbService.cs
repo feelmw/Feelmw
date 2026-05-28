@@ -4,15 +4,22 @@ using Microsoft.JSInterop;
 
 namespace FeelmwLogistika.Blazor.Services;
 
-public sealed class LogistikaDbService(HttpClient httpClient, IJSRuntime jsRuntime) : ILogistikaDbService
+public sealed class LogistikaDbService(HttpClient httpClient, IJSRuntime jsRuntime, IGoogleSheetsService googleSheetsService) : ILogistikaDbService
 {
     private static readonly SemaphoreSlim FileLock = new(1, 1);
     private static readonly string[] AllowedSheets = ["Ostalak", "Ekintzak", "Garraioak"];
+    private static readonly string[] DefaultLogistikaOstalakHeaders = ["Ostala", "Bonoa", "Helbidea", "Checkin", "Checkout", "Doku", "Harreta ordutegia", "Toallak barne", "Izarak barne", "Instalazioak", "Gosaria", "Bazkaria", "Afaria"];
+    private static readonly string[] DefaultLogistikaEkintzakHeaders = ["Ekintza", "Bonoa", "Iraupena", "Kontaktua", "Elkartokia", "Iristean", "EramanM", "BertanM", "Aldageal", "Komunak", "Egonlekua", "Informazioa"];
     private const string StorageKey = "FeelMW.Logistika.xlsx";
     private byte[]? workbookBytes;
 
     public async Task<IReadOnlyList<Ostalak>> ReadOstalakAsync(CancellationToken cancellationToken = default)
     {
+        if (googleSheetsService.IsConfigured)
+        {
+            return ReadOstalakRows(await googleSheetsService.ReadSheetAsync("Logistika", "Ostalak", cancellationToken)).ToList();
+        }
+
         await FileLock.WaitAsync(cancellationToken);
         try
         {
@@ -32,6 +39,11 @@ public sealed class LogistikaDbService(HttpClient httpClient, IJSRuntime jsRunti
 
     public async Task<IReadOnlyList<Ekintzak>> ReadEkintzakAsync(CancellationToken cancellationToken = default)
     {
+        if (googleSheetsService.IsConfigured)
+        {
+            return ReadEkintzakRows(await googleSheetsService.ReadSheetAsync("Logistika", "Ekintzak", cancellationToken)).ToList();
+        }
+
         await FileLock.WaitAsync(cancellationToken);
         try
         {
@@ -51,6 +63,11 @@ public sealed class LogistikaDbService(HttpClient httpClient, IJSRuntime jsRunti
 
     public async Task<IReadOnlyList<Garraioak>> ReadGarraioakAsync(CancellationToken cancellationToken = default)
     {
+        if (googleSheetsService.IsConfigured)
+        {
+            return ReadGarraioakRows(await googleSheetsService.ReadSheetAsync("Logistika", "Garraioak", cancellationToken)).ToList();
+        }
+
         await FileLock.WaitAsync(cancellationToken);
         try
         {
@@ -70,6 +87,14 @@ public sealed class LogistikaDbService(HttpClient httpClient, IJSRuntime jsRunti
 
     public async Task AddOstalaAsync(Ostalak ostala, CancellationToken cancellationToken = default)
     {
+        if (googleSheetsService.IsConfigured)
+        {
+            IReadOnlyList<IReadOnlyList<string>> rows = await googleSheetsService.ReadSheetAsync("Logistika", "Ostalak", cancellationToken);
+            IReadOnlyList<string> headers = rows.Count > 0 ? rows[0] : DefaultLogistikaOstalakHeaders;
+            await googleSheetsService.AddRowAsync("Logistika", "Ostalak", headers.Select(header => OstalaValueForHeader(NormalizeHeader(header), ostala)).ToList(), cancellationToken);
+            return;
+        }
+
         await FileLock.WaitAsync(cancellationToken);
         try
         {
@@ -118,6 +143,14 @@ public sealed class LogistikaDbService(HttpClient httpClient, IJSRuntime jsRunti
 
     public async Task AddEkintzaAsync(Ekintzak ekintza, CancellationToken cancellationToken = default)
     {
+        if (googleSheetsService.IsConfigured)
+        {
+            IReadOnlyList<IReadOnlyList<string>> rows = await googleSheetsService.ReadSheetAsync("Logistika", "Ekintzak", cancellationToken);
+            IReadOnlyList<string> headers = rows.Count > 0 ? rows[0] : DefaultLogistikaEkintzakHeaders;
+            await googleSheetsService.AddRowAsync("Logistika", "Ekintzak", headers.Select(header => EkintzaValueForHeader(NormalizeHeader(header), ekintza)).ToList(), cancellationToken);
+            return;
+        }
+
         await FileLock.WaitAsync(cancellationToken);
         try
         {
@@ -161,6 +194,11 @@ public sealed class LogistikaDbService(HttpClient httpClient, IJSRuntime jsRunti
     public async Task<IReadOnlyList<IReadOnlyList<string>>> ReadSheetAsync(string sheetName, CancellationToken cancellationToken = default)
     {
         EnsureAllowedSheet(sheetName);
+        if (googleSheetsService.IsConfigured)
+        {
+            return await googleSheetsService.ReadSheetAsync("Logistika", sheetName, cancellationToken);
+        }
+
         await FileLock.WaitAsync(cancellationToken);
         try
         {
@@ -194,6 +232,12 @@ public sealed class LogistikaDbService(HttpClient httpClient, IJSRuntime jsRunti
     public async Task SaveSheetAsync(string sheetName, IReadOnlyList<IReadOnlyList<string>> rows, CancellationToken cancellationToken = default)
     {
         EnsureAllowedSheet(sheetName);
+        if (googleSheetsService.IsConfigured)
+        {
+            await googleSheetsService.SaveSheetAsync("Logistika", sheetName, rows, cancellationToken);
+            return;
+        }
+
         await FileLock.WaitAsync(cancellationToken);
         try
         {
@@ -266,6 +310,192 @@ public sealed class LogistikaDbService(HttpClient httpClient, IJSRuntime jsRunti
         {
             return null;
         }
+    }
+
+    private static IEnumerable<Ostalak> ReadOstalakRows(IReadOnlyList<IReadOnlyList<string>> rows)
+    {
+        if (rows.Count == 0)
+        {
+            yield break;
+        }
+
+        bool hasHeader = HeaderDa(RowCell(rows[0], 1), "ostala", "ostalaizena", "ostala izena", "izena", "hotela");
+        Dictionary<string, int> headers = hasHeader ? HeaderMap(rows[0]) : [];
+
+        foreach (IReadOnlyList<string> row in rows.Skip(hasHeader ? 1 : 0))
+        {
+            if (RowHutsa(row))
+            {
+                continue;
+            }
+
+            Ostalak item = hasHeader ? ReadOstalaByHeader(row, headers) : ReadOstalaByPosition(row);
+            if (!string.IsNullOrWhiteSpace(item.OstalaIzena))
+            {
+                yield return item;
+            }
+        }
+    }
+
+    private static Ostalak ReadOstalaByHeader(IReadOnlyList<string> row, IReadOnlyDictionary<string, int> headers)
+    {
+        return new Ostalak(
+            HeaderValue(row, headers, "ostalaizena", "ostala", "izena", "hotela"),
+            HeaderValue(row, headers, "bonoa"),
+            HeaderValue(row, headers, "helbidea"),
+            HeaderValue(row, headers, "lokalizatzailea", "lokali"),
+            ParseInt(HeaderValue(row, headers, "gauak")),
+            HeaderValue(row, headers, "datak"),
+            HeaderValue(row, headers, "gelak"),
+            HeaderValue(row, headers, "sarrera", "checkin", "check in"),
+            HeaderValue(row, headers, "irteera", "checkout", "check out"),
+            HeaderValue(row, headers, "dokumentazioa", "doc", "doku"),
+            HeaderValue(row, headers, "harrera", "harreta", "harreta ordutegia", "harrera ordutegia"),
+            HeaderValue(row, headers, "gosaria", "gosariates"),
+            HeaderValue(row, headers, "bazkaria", "bazkariates"),
+            HeaderValue(row, headers, "afaria", "afariates"),
+            Parseatu(HeaderValue(row, headers, "toailak", "toallak", "toallak barne", "toailak barne")),
+            Parseatu(HeaderValue(row, headers, "izarak", "izarak barne")),
+            HeaderValue(row, headers, "fidantza prezioa", "fidantza kuota", "fidantzaquota"),
+            HeaderValue(row, headers, "maleten prezioa", "luggage prezioa", "luggage kuota", "luggagekuota", "luggage quota"),
+            HeaderValue(row, headers, "instalazioak", "inst"));
+    }
+
+    private static Ostalak ReadOstalaByPosition(IReadOnlyList<string> row)
+    {
+        bool formatuBerria = OstalaFormatuBerriaDa(row);
+        return new Ostalak(
+            RowCell(row, 1),
+            RowCell(row, 2),
+            RowCell(row, 3),
+            formatuBerria ? RowCell(row, 4) : BalioLehenetsiak.Lokalizatzailea,
+            int.TryParse(formatuBerria ? RowCell(row, 5) : BalioLehenetsiak.Gauak.ToString(), out int gauakKop) ? gauakKop : 0,
+            formatuBerria ? RowCell(row, 6) : "",
+            formatuBerria ? RowCell(row, 7) : "",
+            formatuBerria ? RowCell(row, 8) : RowCell(row, 4),
+            formatuBerria ? RowCell(row, 9) : RowCell(row, 5),
+            formatuBerria ? RowCell(row, 10) : RowCell(row, 6),
+            formatuBerria ? RowCell(row, 11) : RowCell(row, 8),
+            formatuBerria ? RowCell(row, 12) : RowCell(row, 12),
+            formatuBerria ? RowCell(row, 13) : RowCell(row, 13),
+            formatuBerria ? RowCell(row, 14) : RowCell(row, 14),
+            Parseatu(formatuBerria ? RowCell(row, 15) : RowCell(row, 9)),
+            Parseatu(formatuBerria ? RowCell(row, 16) : RowCell(row, 10)),
+            formatuBerria ? RowCell(row, 17) : RowCell(row, 15),
+            formatuBerria ? RowCell(row, 18) : RowCell(row, 7),
+            formatuBerria ? RowCell(row, 19) : RowCell(row, 11));
+    }
+
+    private static IEnumerable<Ekintzak> ReadEkintzakRows(IReadOnlyList<IReadOnlyList<string>> rows)
+    {
+        if (rows.Count == 0)
+        {
+            yield break;
+        }
+
+        bool hasHeader = HeaderDa(RowCell(rows[0], 1), "ekintza", "ekintzaizena", "ekintza izena", "izena");
+        Dictionary<string, int> headers = hasHeader ? HeaderMap(rows[0]) : [];
+
+        foreach (IReadOnlyList<string> row in rows.Skip(hasHeader ? 1 : 0))
+        {
+            if (RowHutsa(row))
+            {
+                continue;
+            }
+
+            Ekintzak item = hasHeader ? ReadEkintzaByHeader(row, headers) : ReadEkintzaByPosition(row);
+            if (!string.IsNullOrWhiteSpace(item.EkintzaIzena))
+            {
+                yield return item;
+            }
+        }
+    }
+
+    private static Ekintzak ReadEkintzaByHeader(IReadOnlyList<string> row, IReadOnlyDictionary<string, int> headers)
+    {
+        return new Ekintzak(
+            HeaderValue(row, headers, "ekintzaizena", "ekintza", "izena"),
+            HeaderValue(row, headers, "bonoa"),
+            HeaderValue(row, headers, "iraupena"),
+            HeaderValue(row, headers, "kontaktua"),
+            HeaderValue(row, headers, "elkartokia"),
+            HeaderValue(row, headers, "iristean"),
+            HeaderValue(row, headers, "eramanm"),
+            HeaderValue(row, headers, "bertanm"),
+            Parseatu(HeaderValue(row, headers, "aldagela", "aldageal")),
+            Parseatu(HeaderValue(row, headers, "komuna", "komunak")),
+            HeaderValue(row, headers, "egonlekua"),
+            HeaderValue(row, headers, "informazioa"),
+            HeaderValue(row, headers, "lokali", "lokalizatzailea"));
+    }
+
+    private static Ekintzak ReadEkintzaByPosition(IReadOnlyList<string> row)
+    {
+        return new Ekintzak(
+            RowCell(row, 1),
+            RowCell(row, 2),
+            RowCell(row, 3),
+            RowCell(row, 4),
+            RowCell(row, 5),
+            RowCell(row, 6),
+            RowCell(row, 7),
+            RowCell(row, 8),
+            Parseatu(RowCell(row, 9)),
+            Parseatu(RowCell(row, 10)),
+            RowCell(row, 11),
+            RowCell(row, 12),
+            RowCell(row, 13));
+    }
+
+    private static IEnumerable<Garraioak> ReadGarraioakRows(IReadOnlyList<IReadOnlyList<string>> rows)
+    {
+        if (rows.Count == 0)
+        {
+            yield break;
+        }
+
+        bool hasHeader = HeaderDa(RowCell(rows[0], 1), "garraioa", "garraioaizena", "garraioa izena", "izena");
+        Dictionary<string, int> headers = hasHeader ? HeaderMap(rows[0]) : [];
+
+        foreach (IReadOnlyList<string> row in rows.Skip(hasHeader ? 1 : 0))
+        {
+            if (RowHutsa(row))
+            {
+                continue;
+            }
+
+            Garraioak item = hasHeader ? ReadGarraioaByHeader(row, headers) : ReadGarraioaByPosition(row);
+            if (!string.IsNullOrWhiteSpace(item.GarraioaIzena))
+            {
+                yield return item;
+            }
+        }
+    }
+
+    private static Garraioak ReadGarraioaByHeader(IReadOnlyList<string> row, IReadOnlyDictionary<string, int> headers)
+    {
+        return new Garraioak(
+            HeaderValue(row, headers, "garraioaizena", "garraioa", "izena"),
+            HeaderValue(row, headers, "eguna"),
+            HeaderValue(row, headers, "ordutegia"),
+            HeaderValue(row, headers, "lokalizatzailea", "lokali"),
+            HeaderValue(row, headers, "kontaktua"),
+            HeaderValue(row, headers, "elkargunea"),
+            HeaderValue(row, headers, "eginbeharrak"),
+            HeaderValue(row, headers, "informazioa"));
+    }
+
+    private static Garraioak ReadGarraioaByPosition(IReadOnlyList<string> row)
+    {
+        return new Garraioak(
+            RowCell(row, 1),
+            RowCell(row, 2),
+            RowCell(row, 3),
+            RowCell(row, 4),
+            RowCell(row, 5),
+            RowCell(row, 6),
+            RowCell(row, 7),
+            RowCell(row, 8));
     }
 
     private static IEnumerable<Ostalak> ReadOstalak(IXLWorksheet sheet)
@@ -547,6 +777,12 @@ public sealed class LogistikaDbService(HttpClient httpClient, IJSRuntime jsRunti
 
     private static string Gelaxka(IXLRangeRow row, int zutabea) => row.Cell(zutabea).GetFormattedString() ?? "";
 
+    private static string RowCell(IReadOnlyList<string> row, int zutabea)
+    {
+        int index = zutabea - 1;
+        return index >= 0 && index < row.Count ? row[index] ?? "" : "";
+    }
+
     private static Dictionary<string, int> HeaderMap(IXLRangeRow headerRow)
     {
         Dictionary<string, int> headers = [];
@@ -562,6 +798,21 @@ public sealed class LogistikaDbService(HttpClient httpClient, IJSRuntime jsRunti
         return headers;
     }
 
+    private static Dictionary<string, int> HeaderMap(IReadOnlyList<string> headerRow)
+    {
+        Dictionary<string, int> headers = [];
+        for (int i = 0; i < headerRow.Count; i++)
+        {
+            string key = NormalizeHeader(headerRow[i]);
+            if (!string.IsNullOrWhiteSpace(key) && !headers.ContainsKey(key))
+            {
+                headers.Add(key, i + 1);
+            }
+        }
+
+        return headers;
+    }
+
     private static string HeaderValue(IXLRangeRow row, IReadOnlyDictionary<string, int> headers, params string[] names)
     {
         foreach (string name in names)
@@ -569,6 +820,19 @@ public sealed class LogistikaDbService(HttpClient httpClient, IJSRuntime jsRunti
             if (headers.TryGetValue(NormalizeHeader(name), out int column))
             {
                 return Gelaxka(row, column);
+            }
+        }
+
+        return "";
+    }
+
+    private static string HeaderValue(IReadOnlyList<string> row, IReadOnlyDictionary<string, int> headers, params string[] names)
+    {
+        foreach (string name in names)
+        {
+            if (headers.TryGetValue(NormalizeHeader(name), out int column))
+            {
+                return RowCell(row, column);
             }
         }
 
@@ -591,6 +855,8 @@ public sealed class LogistikaDbService(HttpClient httpClient, IJSRuntime jsRunti
     }
 
     private static bool RowHutsa(IXLRangeRow row) => row.CellsUsed().All(c => string.IsNullOrWhiteSpace(c.GetFormattedString()));
+
+    private static bool RowHutsa(IReadOnlyList<string> row) => row.All(string.IsNullOrWhiteSpace);
 
     private static bool GoiburuaDa(string lehenZutabea, params string[] aukerak)
     {
@@ -621,6 +887,26 @@ public sealed class LogistikaDbService(HttpClient httpClient, IJSRuntime jsRunti
         for (int zutabea = 17; zutabea <= 19; zutabea++)
         {
             if (!string.IsNullOrWhiteSpace(Gelaxka(row, zutabea)))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool OstalaFormatuBerriaDa(IReadOnlyList<string> row)
+    {
+        if (int.TryParse(RowCell(row, 5), out _)
+            || RowCell(row, 6).Contains(" - ")
+            || string.Equals(RowCell(row, 4), BalioLehenetsiak.Lokalizatzailea, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        for (int zutabea = 17; zutabea <= 19; zutabea++)
+        {
+            if (!string.IsNullOrWhiteSpace(RowCell(row, zutabea)))
             {
                 return true;
             }

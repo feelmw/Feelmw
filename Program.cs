@@ -17,6 +17,7 @@ builder.Services.AddScoped<IPlangintzaService, PlangintzaService>();
 builder.Services.AddScoped<LogistikaWorkflowState>();
 builder.Services.AddScoped<PlangintzaWorkflowState>();
 builder.Services.AddScoped<IDocumentWorkflowService, DocumentWorkflowService>();
+builder.Services.AddScoped<IGoogleSheetsService, GoogleSheetsService>();
 builder.Services.AddScoped<ILogistikaDbService, LogistikaDbService>();
 builder.Services.AddScoped<ILogistikaDataService, LogistikaDataService>();
 builder.Services.AddScoped<IPlangintzaListakService, PlangintzaListakService>();

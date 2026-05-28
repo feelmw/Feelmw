@@ -4,14 +4,14 @@
 
 <PageTitle>FeelMW - PlangintzaDB</PageTitle>
 
-<SectionHeader Title="PlangintzaDB" Subtitle="Plangintza.xlsx" />
+<SectionHeader Title="PlangintzaDB" Subtitle="Google Sheets" />
 
 @if (!string.IsNullOrWhiteSpace(message))
 {
     <div class="alert alert-info">@message</div>
 }
 
-<div class="alert alert-info">Fitxategia ezin da zuzenean aldatu nabigatzailetik. Aldaketak nabigatzailean gordeko dira.</div>
+<div class="alert alert-info">Datuak Google Sheets bidez gordeko dira. APIa konfiguratu gabe badago, Excel lokala erabiliko da.</div>
 
 <div class="toolbar">
     <select class="form-select" @bind="selectedSheet" @bind:after="LoadAsync">
@@ -46,7 +46,7 @@ else
                         {
                             int currentCol = colIndex;
                             <td>
-                                <input class="form-control db-cell-input" value="@rows[currentRow][currentCol]" @oninput="e => UpdateCellAsync(currentRow, currentCol, e.Value?.ToString() ?? string.Empty)" />
+                                <input class="form-control db-cell-input" value="@rows[currentRow][currentCol]" @onchange="e => UpdateCellAsync(currentRow, currentCol, e.Value?.ToString() ?? string.Empty)" />
                             </td>
                         }
                         <td>
@@ -121,11 +121,11 @@ else
             rows.RemoveAt(rowIndex);
             await SaveRowsAsync();
             await LoadAsync();
-            message = "Ezabatuta.";
+            message = "Ezabatu da";
         }
         catch
         {
-            message = "Ezin izan da eguneratu.";
+            message = "Errorea datuak gordetzean";
         }
     }
 
@@ -156,13 +156,13 @@ else
         {
             existingRowCount++;
             AddBlankRow();
-            await TrySaveAsync("Lerro berria gehituta.");
+            await TrySaveAsync("Gorde da");
             return;
         }
 
         if (!isNewRow)
         {
-            await TrySaveAsync("Eguneratuta.");
+            await TrySaveAsync("Datuak eguneratu dira");
         }
     }
 
@@ -171,11 +171,12 @@ else
         try
         {
             await SaveRowsAsync();
+            await LoadAsync();
             message = successMessage;
         }
         catch
         {
-            message = "Ezin izan da eguneratu.";
+            message = "Errorea datuak gordetzean";
         }
     }
 

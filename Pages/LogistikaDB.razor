@@ -4,19 +4,20 @@
 
 <PageTitle>FeelMW - LogistikaDB</PageTitle>
 
-<SectionHeader Title="LogistikaDB" Subtitle="Logistika.xlsx" />
+<SectionHeader Title="LogistikaDB" Subtitle="Google Sheets" />
 
 @if (!string.IsNullOrWhiteSpace(message))
 {
     <div class="alert alert-info">@message</div>
 }
 
-<div class="alert alert-info">Fitxategia ezin da zuzenean aldatu nabigatzailetik. Aldaketak nabigatzailean gordeko dira.</div>
+<div class="alert alert-info">Datuak Google Sheets bidez gordeko dira. APIa konfiguratu gabe badago, Excel lokala erabiliko da.</div>
 
 <div class="toolbar">
     <select class="form-select" @bind="selectedSheet" @bind:after="LoadAsync">
         <option value="Ostalak">Ostalak</option>
         <option value="Ekintzak">Ekintzak</option>
+        <option value="Garraioak">Garraioak</option>
     </select>
 </div>
 
@@ -46,7 +47,7 @@ else
                         {
                             int currentCol = colIndex;
                             <td>
-                                <input class="form-control db-cell-input" value="@rows[currentRow][currentCol]" @oninput="e => UpdateCellAsync(currentRow, currentCol, e.Value?.ToString() ?? string.Empty)" />
+                                <input class="form-control db-cell-input" value="@rows[currentRow][currentCol]" @onchange="e => UpdateCellAsync(currentRow, currentCol, e.Value?.ToString() ?? string.Empty)" />
                             </td>
                         }
                         <td>
@@ -79,9 +80,10 @@ else
         IReadOnlyList<IReadOnlyList<string>> sheetRows = await DbService.ReadSheetAsync(selectedSheet);
         if (sheetRows.Count == 0)
         {
-            headers = [];
+            headers = DefaultHeaders(selectedSheet);
             rows = [];
             existingRowCount = 0;
+            AddBlankRow();
             message = null;
             return;
         }
@@ -118,11 +120,11 @@ else
             rows.RemoveAt(rowIndex);
             await SaveRowsAsync();
             await LoadAsync();
-            message = "Ezabatuta.";
+            message = "Ezabatu da";
         }
         catch
         {
-            message = "Ezin izan da eguneratu.";
+            message = "Errorea datuak gordetzean";
         }
     }
 
@@ -153,13 +155,13 @@ else
         {
             existingRowCount++;
             AddBlankRow();
-            await TrySaveAsync("Lerro berria gehituta.");
+            await TrySaveAsync("Gorde da");
             return;
         }
 
         if (!isNewRow)
         {
-            await TrySaveAsync("Eguneratuta.");
+            await TrySaveAsync("Datuak eguneratu dira");
         }
     }
 
@@ -168,12 +170,23 @@ else
         try
         {
             await SaveRowsAsync();
+            await LoadAsync();
             message = successMessage;
         }
         catch
         {
-            message = "Ezin izan da eguneratu.";
+            message = "Errorea datuak gordetzean";
         }
+    }
+
+    private static List<string> DefaultHeaders(string sheetName)
+    {
+        return sheetName switch
+        {
+            "Ekintzak" => ["Ekintza", "Bonoa", "Iraupena", "Kontaktua", "Elkartokia", "Iristean", "EramanM", "BertanM", "Aldageal", "Komunak", "Egonlekua", "Informazioa"],
+            "Garraioak" => ["Garraioa", "Eguna", "Ordutegia", "Lokalizatzailea", "Kontaktua", "Elkargunea", "Eginbeharrak", "Informazioa"],
+            _ => ["Ostala", "Bonoa", "Helbidea", "Checkin", "Checkout", "Doku", "Harreta ordutegia", "Toallak barne", "Izarak barne", "Instalazioak", "Gosaria", "Bazkaria", "Afaria"]
+        };
     }
 
     private static string DisplayHeader(string header)

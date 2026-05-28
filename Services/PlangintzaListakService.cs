@@ -4,10 +4,12 @@ using Microsoft.JSInterop;
 
 namespace FeelmwLogistika.Blazor.Services;
 
-public sealed class PlangintzaListakService(HttpClient httpClient, IJSRuntime jsRuntime) : IPlangintzaListakService
+public sealed class PlangintzaListakService(HttpClient httpClient, IJSRuntime jsRuntime, IGoogleSheetsService googleSheetsService) : IPlangintzaListakService
 {
     private static readonly SemaphoreSlim FileLock = new(1, 1);
     private static readonly string[] AllowedSheets = ["Ostalak", "Ekintzak"];
+    private static readonly string[] DefaultOstalakHeaders = ["Hiria", "Izena", "HelbideaURL"];
+    private static readonly string[] DefaultEkintzakHeaders = ["Izena", "Deskribapena"];
     private const string StorageKey = "FeelMW.Plangintza.xlsx";
     private byte[]? workbookBytes;
 
@@ -25,6 +27,11 @@ public sealed class PlangintzaListakService(HttpClient httpClient, IJSRuntime js
 
     public async Task<IReadOnlyList<Hotelak>> ReadOstalakAsync(CancellationToken cancellationToken = default)
     {
+        if (googleSheetsService.IsConfigured)
+        {
+            return ReadOstalakRows(await googleSheetsService.ReadSheetAsync("Plangintza", "Ostalak", cancellationToken)).ToList();
+        }
+
         await FileLock.WaitAsync(cancellationToken);
         try
         {
@@ -64,6 +71,11 @@ public sealed class PlangintzaListakService(HttpClient httpClient, IJSRuntime js
 
     public async Task<IReadOnlyList<EkintzakPlan>> ReadEkintzakAsync(CancellationToken cancellationToken = default)
     {
+        if (googleSheetsService.IsConfigured)
+        {
+            return ReadEkintzakRows(await googleSheetsService.ReadSheetAsync("Plangintza", "Ekintzak", cancellationToken)).ToList();
+        }
+
         await FileLock.WaitAsync(cancellationToken);
         try
         {
@@ -102,6 +114,14 @@ public sealed class PlangintzaListakService(HttpClient httpClient, IJSRuntime js
 
     public async Task AddEkintzaAsync(EkintzakPlan ekintza, CancellationToken cancellationToken = default)
     {
+        if (googleSheetsService.IsConfigured)
+        {
+            IReadOnlyList<IReadOnlyList<string>> rows = await googleSheetsService.ReadSheetAsync("Plangintza", "Ekintzak", cancellationToken);
+            IReadOnlyList<string> headers = rows.Count > 0 ? rows[0] : DefaultEkintzakHeaders;
+            await googleSheetsService.AddRowAsync("Plangintza", "Ekintzak", headers.Select(header => EkintzaValueForHeader(header, ekintza)).ToList(), cancellationToken);
+            return;
+        }
+
         await FileLock.WaitAsync(cancellationToken);
         try
         {
@@ -126,6 +146,11 @@ public sealed class PlangintzaListakService(HttpClient httpClient, IJSRuntime js
     public async Task<IReadOnlyList<IReadOnlyList<string>>> ReadSheetAsync(string sheetName, CancellationToken cancellationToken = default)
     {
         EnsureAllowedSheet(sheetName);
+        if (googleSheetsService.IsConfigured)
+        {
+            return await googleSheetsService.ReadSheetAsync("Plangintza", sheetName, cancellationToken);
+        }
+
         await FileLock.WaitAsync(cancellationToken);
         try
         {
@@ -159,6 +184,12 @@ public sealed class PlangintzaListakService(HttpClient httpClient, IJSRuntime js
     public async Task SaveSheetAsync(string sheetName, IReadOnlyList<IReadOnlyList<string>> rows, CancellationToken cancellationToken = default)
     {
         EnsureAllowedSheet(sheetName);
+        if (googleSheetsService.IsConfigured)
+        {
+            await googleSheetsService.SaveSheetAsync("Plangintza", sheetName, rows, cancellationToken);
+            return;
+        }
+
         await FileLock.WaitAsync(cancellationToken);
         try
         {
@@ -233,6 +264,59 @@ public sealed class PlangintzaListakService(HttpClient httpClient, IJSRuntime js
         }
     }
 
+    private static IEnumerable<Hotelak> ReadOstalakRows(IReadOnlyList<IReadOnlyList<string>> rows)
+    {
+        if (rows.Count == 0)
+        {
+            yield break;
+        }
+
+        Dictionary<string, int> headers = ReadHeaders(rows[0]);
+        bool hasHeader = HasAnyHeader(headers, "izena", "ostala", "hotela");
+
+        foreach (IReadOnlyList<string> row in rows.Skip(hasHeader ? 1 : 0))
+        {
+            string izena = hasHeader
+                ? ReadByHeader(row, headers, "izena", "ostala", "hotela")
+                : ReadCell(row, 2);
+            if (string.IsNullOrWhiteSpace(izena))
+            {
+                continue;
+            }
+
+            yield return new Hotelak(
+                hasHeader ? ReadByHeader(row, headers, "hiria") : ReadCell(row, 1),
+                izena,
+                hasHeader ? ReadByHeader(row, headers, "helbideaurl", "helbidea url", "url") : ReadCell(row, 3));
+        }
+    }
+
+    private static IEnumerable<EkintzakPlan> ReadEkintzakRows(IReadOnlyList<IReadOnlyList<string>> rows)
+    {
+        if (rows.Count == 0)
+        {
+            yield break;
+        }
+
+        Dictionary<string, int> headers = ReadHeaders(rows[0]);
+        bool hasHeader = HasAnyHeader(headers, "izena", "mota", "ekintza");
+
+        foreach (IReadOnlyList<string> row in rows.Skip(hasHeader ? 1 : 0))
+        {
+            string izena = hasHeader
+                ? ReadByHeader(row, headers, "izena", "mota", "ekintza")
+                : ReadCell(row, 1);
+            if (string.IsNullOrWhiteSpace(izena))
+            {
+                continue;
+            }
+
+            yield return new EkintzakPlan(
+                izena,
+                hasHeader ? ReadByHeader(row, headers, "deskribapena", "descripcion", "azalpena") : ReadCell(row, 2));
+        }
+    }
+
     private static Dictionary<string, int> ReadHeaders(IXLWorksheet sheet)
     {
         Dictionary<string, int> headers = new(StringComparer.OrdinalIgnoreCase);
@@ -249,6 +333,21 @@ public sealed class PlangintzaListakService(HttpClient httpClient, IJSRuntime js
             if (!string.IsNullOrWhiteSpace(header) && !headers.ContainsKey(header))
             {
                 headers[header] = cell.Address.ColumnNumber;
+            }
+        }
+
+        return headers;
+    }
+
+    private static Dictionary<string, int> ReadHeaders(IReadOnlyList<string> headerRow)
+    {
+        Dictionary<string, int> headers = new(StringComparer.OrdinalIgnoreCase);
+        for (int i = 0; i < headerRow.Count; i++)
+        {
+            string header = Normalize(headerRow[i]);
+            if (!string.IsNullOrWhiteSpace(header) && !headers.ContainsKey(header))
+            {
+                headers[header] = i + 1;
             }
         }
 
@@ -278,6 +377,19 @@ public sealed class PlangintzaListakService(HttpClient httpClient, IJSRuntime js
         return "";
     }
 
+    private static string ReadByHeader(IReadOnlyList<string> row, IReadOnlyDictionary<string, int> headers, params string[] aliases)
+    {
+        foreach (string alias in aliases)
+        {
+            if (headers.TryGetValue(Normalize(alias), out int column))
+            {
+                return ReadCell(row, column);
+            }
+        }
+
+        return "";
+    }
+
     private static string ReadCell(IXLRangeRow row, int column)
     {
         IXLCell cell = row.Cell(column);
@@ -291,6 +403,22 @@ public sealed class PlangintzaListakService(HttpClient httpClient, IJSRuntime js
         }
 
         return cell.GetFormattedString();
+    }
+
+    private static string ReadCell(IReadOnlyList<string> row, int column)
+    {
+        int index = column - 1;
+        return index >= 0 && index < row.Count ? row[index] ?? "" : "";
+    }
+
+    private static string EkintzaValueForHeader(string header, EkintzakPlan ekintza)
+    {
+        return Normalize(header) switch
+        {
+            "izena" or "mota" or "ekintza" => ekintza.Mota,
+            "deskribapena" or "descripcion" or "azalpena" => ekintza.Deskribapena,
+            _ => ""
+        };
     }
 
     private static bool HasAnyHeader(IReadOnlyDictionary<string, int> headers, params string[] aliases)
