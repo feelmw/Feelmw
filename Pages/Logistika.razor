@@ -116,6 +116,7 @@
 
     private async Task DownloadAsync(string fileName, string contentType, byte[] bytes)
     {
+        // Drive-ra zuzenean gordetzeko Google Drive OAuth scopeak, Picker APIa eta fitxategiak igotzeko API/endpoint bat behar dira; oraingoz deskarga mantentzen da.
         await JS.InvokeVoidAsync("downloadFileFromBase64", fileName, contentType, Convert.ToBase64String(bytes));
     }
 

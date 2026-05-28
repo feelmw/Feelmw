@@ -181,6 +181,39 @@ a, .btn-link {
     padding: 1rem;
 }
 
+.auth-screen {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+.auth-panel {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    display: grid;
+    gap: .85rem;
+    max-width: 420px;
+    padding: 1.35rem;
+    width: min(100%, 420px);
+}
+
+.auth-panel h1 {
+    font-size: 1.6rem;
+    margin: 0;
+}
+
+.auth-panel p {
+    color: #555;
+    margin: 0;
+}
+
+.google-login-button {
+    min-height: 44px;
+}
+
 @media (min-width: 641px) {
     .content {
         padding: 1rem 1.25rem 1.5rem;

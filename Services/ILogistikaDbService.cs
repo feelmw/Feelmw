@@ -11,5 +11,4 @@ public interface ILogistikaDbService
     Task AddEkintzaAsync(Ekintzak ekintza, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<IReadOnlyList<string>>> ReadSheetAsync(string sheetName, CancellationToken cancellationToken = default);
     Task SaveSheetAsync(string sheetName, IReadOnlyList<IReadOnlyList<string>> rows, CancellationToken cancellationToken = default);
-    Task<byte[]> ExportWorkbookAsync(CancellationToken cancellationToken = default);
 }

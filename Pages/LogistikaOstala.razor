@@ -159,10 +159,17 @@
         }
 
         Ostalak ostala = CreateOstala();
-        await DataService.AddOstalaAsync(ostala);
-        presets = (await DataService.ReadOstalakAsync()).ToList();
-        State.Ostalak.Add(ostala);
-        Nav.NavigateTo("logistika");
+        try
+        {
+            await DataService.AddOstalaAsync(ostala);
+            presets = (await DataService.ReadOstalakAsync()).ToList();
+            State.Ostalak.Add(ostala);
+            Nav.NavigateTo("logistika");
+        }
+        catch
+        {
+            error = "Ezin izan da ostala Drive-n gorde.";
+        }
     }
 
     private bool Validate()

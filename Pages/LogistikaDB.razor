@@ -75,24 +75,34 @@ else
 
     private async Task LoadAsync()
     {
-        IReadOnlyList<IReadOnlyList<string>> sheetRows = await DbService.ReadSheetAsync(selectedSheet);
-        if (sheetRows.Count == 0)
+        try
         {
-            headers = DefaultHeaders(selectedSheet);
-            rows = [];
-            existingRowCount = 0;
+            IReadOnlyList<IReadOnlyList<string>> sheetRows = await DbService.ReadSheetAsync(selectedSheet);
+            if (sheetRows.Count == 0)
+            {
+                headers = DefaultHeaders(selectedSheet);
+                rows = [];
+                existingRowCount = 0;
+                AddBlankRow();
+                message = null;
+                return;
+            }
+
+            headers = sheetRows[0]
+                .Select((header, index) => string.IsNullOrWhiteSpace(header) ? $"Zutabe {index + 1}" : header)
+                .ToList();
+            rows = NormalizeRows(sheetRows.Skip(1).ToList(), headers.Count);
+            existingRowCount = rows.Count;
             AddBlankRow();
             message = null;
-            return;
         }
-
-        headers = sheetRows[0]
-            .Select((header, index) => string.IsNullOrWhiteSpace(header) ? $"Zutabe {index + 1}" : header)
-            .ToList();
-        rows = NormalizeRows(sheetRows.Skip(1).ToList(), headers.Count);
-        existingRowCount = rows.Count;
-        AddBlankRow();
-        message = null;
+        catch
+        {
+            headers = [];
+            rows = [];
+            existingRowCount = 0;
+            message = "Errorea datuak kargatzean";
+        }
     }
 
     private void AddBlankRow()
@@ -122,6 +132,7 @@ else
         }
         catch
         {
+            await LoadAsync();
             message = "Errorea datuak gordetzean";
         }
     }

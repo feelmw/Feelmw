@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="eu">
 
 <head>
     <meta charset="utf-8" />
@@ -26,8 +26,71 @@
 </head>
 
 <body>
-    <div id="app">Loading...</div>
+    <div id="app">Kargatzen...</div>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
+        window.feelmwAuth = (() => {
+            let initialized = false;
+            let clientId = "";
+            const waitForGoogle = () => new Promise((resolve, reject) => {
+                let attempts = 0;
+                const timer = setInterval(() => {
+                    attempts++;
+                    if (window.google?.accounts?.id) {
+                        clearInterval(timer);
+                        resolve(true);
+                    } else if (attempts > 100) {
+                        clearInterval(timer);
+                        reject("Google Identity Services ezin izan da kargatu.");
+                    }
+                }, 100);
+            });
+
+            return {
+                initialize: async (configuredClientId) => {
+                    clientId = configuredClientId || "";
+                    if (!clientId) {
+                        return;
+                    }
+
+                    await waitForGoogle();
+                    initialized = true;
+                },
+                renderButton: async (element, dotNetReference) => {
+                    if (!clientId || !element) {
+                        return;
+                    }
+
+                    await waitForGoogle();
+                    if (!initialized) {
+                        initialized = true;
+                    }
+
+                    google.accounts.id.initialize({
+                        client_id: clientId,
+                        callback: (response) => {
+                            if (response?.credential) {
+                                dotNetReference.invokeMethodAsync("OnGoogleCredential", response.credential);
+                            }
+                        }
+                    });
+
+                    element.innerHTML = "";
+                    google.accounts.id.renderButton(element, {
+                        theme: "outline",
+                        size: "large",
+                        text: "signin_with",
+                        shape: "rectangular"
+                    });
+                },
+                signOut: (email) => {
+                    if (email && window.google?.accounts?.id) {
+                        google.accounts.id.disableAutoSelect();
+                    }
+                }
+            };
+        })();
+
         window.downloadFileFromBase64 = (fileName, contentType, base64Data) => {
             const byteCharacters = atob(base64Data);
             const byteArrays = [];
