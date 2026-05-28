@@ -1,6 +1,6 @@
 const SPREADSHEETS = {
-  Plangintza: '1iR0zvafO3TrzKzRt_aZSCI0YWeAWdmLZ',
-  Logistika: '1LkWELGBOUwzhL322KnmIEGriVxs38o2H'
+  Plangintza: '12znzweKUTKxMYufziFxza5uth37OX6wwq8PDK71cV0w',
+  Logistika: '1Cjuuv9mY3sk3i27Fmi2ccjCl7rRWSpW_ou1KEGzE4Ng'
 };
 
 function doPost(e) {
