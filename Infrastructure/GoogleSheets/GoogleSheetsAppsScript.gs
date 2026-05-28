@@ -2,10 +2,13 @@ const SPREADSHEETS = {
   Plangintza: '12znzweKUTKxMYufziFxza5uth37OX6wwq8PDK71cV0w',
   Logistika: '1Cjuuv9mY3sk3i27Fmi2ccjCl7rRWSpW_ou1KEGzE4Ng'
 };
+const GOOGLE_CLIENT_ID = '46439548145-6i3ce2rfvho11b2jancsslqf14m7t9de.apps.googleusercontent.com';
+const ALLOWED_DOMAIN = 'feelmw.com';
 
 function doPost(e) {
   try {
     const request = JSON.parse(e.postData.contents || '{}');
+    const user = verifyUser(request.idToken);
     const spreadsheetId = SPREADSHEETS[request.workbook];
     if (!spreadsheetId) {
       throw new Error('Workbook ezezaguna.');
@@ -37,6 +40,40 @@ function doPost(e) {
   } catch (error) {
     return json({ success: false, message: String(error && error.message ? error.message : error) });
   }
+}
+
+function verifyUser(idToken) {
+  if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === 'PON_AQUI_TU_GOOGLE_OAUTH_CLIENT_ID') {
+    throw new Error('Google OAuth Client ID konfiguratu behar da Apps Script-en.');
+  }
+
+  if (!idToken) {
+    throw new Error('Google saioa hasi behar da.');
+  }
+
+  const response = UrlFetchApp.fetch('https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(idToken), {
+    muteHttpExceptions: true
+  });
+  const payload = JSON.parse(response.getContentText() || '{}');
+
+  if (response.getResponseCode() !== 200) {
+    throw new Error(payload.error_description || 'Google token baliogabea.');
+  }
+
+  if (payload.aud !== GOOGLE_CLIENT_ID) {
+    throw new Error('Google token hau ez da aplikazio honetakoa.');
+  }
+
+  const email = String(payload.email || '').toLowerCase();
+  const hostedDomain = String(payload.hd || '').toLowerCase();
+  if (!email.endsWith('@' + ALLOWED_DOMAIN) || hostedDomain !== ALLOWED_DOMAIN) {
+    throw new Error('Kontu hau ez dago baimenduta.');
+  }
+
+  return {
+    email: email,
+    name: payload.name || ''
+  };
 }
 
 function readRows(sheet) {

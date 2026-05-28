@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace FeelmwLogistika.Blazor.Services;
 
-public sealed class GoogleSheetsService(HttpClient httpClient, IConfiguration configuration) : IGoogleSheetsService
+public sealed class GoogleSheetsService(HttpClient httpClient, IConfiguration configuration, IGoogleAuthService googleAuthService) : IGoogleSheetsService
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
@@ -86,6 +86,7 @@ public sealed class GoogleSheetsService(HttpClient httpClient, IConfiguration co
             throw new InvalidOperationException("Google Sheets API ez dago konfiguratuta.");
         }
 
+        request = request with { IdToken = await googleAuthService.GetRequiredIdTokenAsync(cancellationToken) };
         string json = JsonSerializer.Serialize(request, JsonOptions);
         using StringContent content = new(json, Encoding.UTF8, "text/plain");
         return await httpClient.PostAsync(baseUrl, content, cancellationToken);
@@ -112,7 +113,8 @@ public sealed class GoogleSheetsService(HttpClient httpClient, IConfiguration co
         string Sheet,
         IReadOnlyList<IReadOnlyList<string>>? Rows = null,
         IReadOnlyList<string>? Row = null,
-        int? RowIndex = null);
+        int? RowIndex = null,
+        string? IdToken = null);
 
     private sealed class GoogleSheetsResponse
     {

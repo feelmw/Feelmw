@@ -1,0 +1,81 @@
+@implements IDisposable
+@inject IGoogleAuthService AuthService
+@inject IJSRuntime JS
+
+@if (initializing)
+{
+    <div class="auth-screen">
+        <div class="auth-panel">
+            <h1>FeelMW</h1>
+            <p>Datuak kargatzen...</p>
+        </div>
+    </div>
+}
+else if (!AuthService.IsConfigured)
+{
+    <div class="auth-screen">
+        <div class="auth-panel">
+            <h1>FeelMW</h1>
+            <p>Google saioa konfiguratu behar da.</p>
+        </div>
+    </div>
+}
+else if (!AuthService.IsAuthenticated)
+{
+    <div class="auth-screen">
+        <div class="auth-panel">
+            <h1>FeelMW</h1>
+            <p>@AuthService.AllowedDomain domeinuko kontuarekin hasi saioa.</p>
+            <div @ref="buttonHost" class="google-login-button"></div>
+            @if (!string.IsNullOrWhiteSpace(AuthService.ErrorMessage))
+            {
+                <div class="alert alert-info">@AuthService.ErrorMessage</div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    @ChildContent
+}
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private DotNetObjectReference<GoogleLoginGate>? dotNetReference;
+    private ElementReference buttonHost;
+    private bool initializing = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthService.AuthStateChanged += OnAuthStateChanged;
+        await AuthService.InitializeAsync();
+        initializing = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!initializing && AuthService.IsConfigured && !AuthService.IsAuthenticated)
+        {
+            dotNetReference ??= DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("feelmwAuth.renderButton", buttonHost, dotNetReference);
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnGoogleCredential(string credential)
+    {
+        await AuthService.SetCredentialAsync(credential);
+    }
+
+    private void OnAuthStateChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        AuthService.AuthStateChanged -= OnAuthStateChanged;
+        dotNetReference?.Dispose();
+    }
+}
