@@ -29,6 +29,15 @@
     <section class="plangintza-panel">
         <div class="form-grid">
             <label>Dokumentua <InputText class="form-control" @bind-Value="documentName" /></label>
+            <label>
+                Maila
+                <InputSelect class="form-select" @bind-Value="maila">
+                    @foreach (string aukera in MailaAukerak)
+                    {
+                        <option value="@aukera">@aukera</option>
+                    }
+                </InputSelect>
+            </label>
             <label>Ikastetxea <InputText class="form-control" @bind-Value="ikastetxea" /></label>
             <label>
                 Ostatua / hotela
@@ -47,7 +56,7 @@
     </section>
 
     <section class="plangintza-panel">
-        <h2>Egunak</h2>
+        <h2>Goiko taula</h2>
         <div class="db-table-wrap">
             <table class="table data-table">
                 <thead>
@@ -78,7 +87,7 @@
 
     <section class="plangintza-panel">
         <div class="section-title-row">
-            <h2>Ekintzak</h2>
+            <h2>Egunez eguneko plangintza</h2>
             <div class="actions left">
                 <button class="btn btn-outline-primary" @onclick="AddActivity">+ Ekintza</button>
                 <button class="btn btn-outline-secondary" @onclick="ShowAddMotaModal">+ Mota</button>
@@ -172,6 +181,7 @@
     private List<Hotelak> hotelPresets = [];
     private List<EkintzakPlan> activityPresets = [];
     private string documentName = "MyFeelPlangintza";
+    private string maila = "DBH2";
     private string ikastetxea = "";
     private string hotelName = "";
     private string hiria = "";
@@ -187,6 +197,7 @@
     private string newMotaIzena = "";
     private string newMotaDeskribapena = "";
     private string? addMotaError;
+    private static readonly string[] MailaAukerak = ["DBH2", "DBH3", "DBH4", "DBH3-4", "BATXI1", "BATXI2", "BATXI1-2"];
     private List<string> DayOptions => egunak.Count == 0
         ? ["Eguna1"]
         : egunak.Select(e => string.IsNullOrWhiteSpace(e.Data) ? $"Eguna{e.Eguna}" : e.Data).ToList();
@@ -366,7 +377,7 @@
             egunak.Select(e => new EgunLaburpena(e.Eguna, e.Data, e.Goisa, e.Arratsaldea, e.Gaua)).ToList(),
             cleanActivities);
 
-        State.DokumentuIzena = string.IsNullOrWhiteSpace(documentName) ? "MyFeelPlangintza" : documentName.Trim();
+        State.DokumentuIzena = BuildDocumentName();
         State.Ikastetxea = ikastetxea;
         State.UpsertBidaia(bidaia);
         message = "Bidaia zerrendara gehituta.";
@@ -415,8 +426,34 @@
 
     private string OutputFileBaseName(string prefix)
     {
+        return BuildDocumentName(prefix);
+    }
+
+    private string BuildDocumentName(string prefix = "Plangintza")
+    {
         string cleanName = Path.GetFileNameWithoutExtension(documentName.Trim());
-        return string.IsNullOrWhiteSpace(cleanName) ? prefix : $"{prefix} - {cleanName}";
+        string cleanMaila = maila.Trim();
+        if (cleanName.StartsWith($"{prefix} - ", StringComparison.OrdinalIgnoreCase))
+        {
+            return cleanName;
+        }
+
+        if (string.IsNullOrWhiteSpace(cleanMaila) && string.IsNullOrWhiteSpace(cleanName))
+        {
+            return prefix;
+        }
+
+        if (string.IsNullOrWhiteSpace(cleanMaila))
+        {
+            return $"{prefix} - {cleanName}";
+        }
+
+        if (string.IsNullOrWhiteSpace(cleanName))
+        {
+            return $"{prefix} - {cleanMaila}";
+        }
+
+        return $"{prefix} - {cleanMaila} {cleanName}";
     }
 
     private void Exit()
@@ -436,6 +473,7 @@
     private void ClearForm(bool addInitialRows = true)
     {
         documentName = "";
+        maila = "DBH2";
         ikastetxea = "";
         hotelName = "";
         hiria = "";

@@ -147,6 +147,24 @@ else
         }
 
         bool isNewRow = row >= existingRowCount;
+        string previousValue = rows[row][col];
+        if (string.Equals(previousValue, value, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        if (!isNewRow)
+        {
+            bool confirmed = await JS.InvokeAsync<bool>("confirm", "Ziur zaude datu hau aldatu nahi duzula?");
+            if (!confirmed)
+            {
+                rows[row][col] = previousValue;
+                rows = rows.Select(item => item.ToList()).ToList();
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+        }
+
         rows[row][col] = value;
 
         if (isNewRow && rows[row].Any(cell => !string.IsNullOrWhiteSpace(cell)))

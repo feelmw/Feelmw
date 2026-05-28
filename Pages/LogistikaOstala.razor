@@ -39,7 +39,7 @@
                 <label>Hasiera data <InputDate class="form-control" @bind-Value="dataHasiera" /></label>
                 <label>Amaiera data <InputDate class="form-control" @bind-Value="dataAmaiera" /></label>
                 <label>Gauak <input type="number" class="form-control" @bind="model.Gauak" @bind:event="oninput" min="1" /></label>
-                <label>Gelak <input class="form-control" @bind="model.Gelak" @bind:event="oninput" /></label>
+                <label>Gelak <textarea class="form-control" @bind="model.Gelak" @bind:event="oninput"></textarea></label>
                 <label>Sarrera <input class="form-control" @bind="model.Checkin" @bind:event="oninput" /></label>
                 <label>Irteera <input class="form-control" @bind="model.Checkout" @bind:event="oninput" /></label>
             </div>
@@ -160,6 +160,7 @@
 
         Ostalak ostala = CreateOstala();
         await DataService.AddOstalaAsync(ostala);
+        presets = (await DataService.ReadOstalakAsync()).ToList();
         State.Ostalak.Add(ostala);
         Nav.NavigateTo("logistika");
     }
