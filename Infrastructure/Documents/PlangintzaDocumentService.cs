@@ -415,10 +415,15 @@ public sealed class PlangintzaDocumentService(HttpClient httpClient) : IPlangint
     {
         foreach (TableRow row in table.Elements<TableRow>())
         {
-            foreach (TableCell cell in row.Elements<TableCell>())
+            List<TableCell> cells = row.Elements<TableCell>().ToList();
+            if (cells.Count == 0 || !EgunLaburpenEtiketaDa(ZeldaTestua(cells[0])))
             {
-                string testua = ZeldaTestua(cell);
-                if (!string.IsNullOrWhiteSpace(testua) && !EgunLaburpenEtiketaDa(testua))
+                continue;
+            }
+
+            foreach (TableCell cell in cells.Skip(1))
+            {
+                if (!string.IsNullOrWhiteSpace(ZeldaTestua(cell)))
                 {
                     return true;
                 }
