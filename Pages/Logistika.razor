@@ -36,6 +36,7 @@
     private string documentName = "MyFeelLogistika";
     private string mota = "";
     private string? message;
+    private const string DriveFallbackMessage = "Oraingoz fitxategia ordenagailura deskargatuko da.";
 
     protected override void OnInitialized()
     {
@@ -82,10 +83,20 @@
 
     private async Task SaveAndExitAsync()
     {
-        FeelmwLogistika.Blazor.Models.LogistikaDatuak datuak = State.ToDatuak();
-        byte[] excelBytes = ExcelService.CreateWorkbook(datuak);
-        await DownloadAsync($"{OutputFileBaseName("Logistika")}.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", excelBytes);
-        Exit();
+        try
+        {
+            FeelmwLogistika.Blazor.Models.LogistikaDatuak datuak = State.ToDatuak();
+            byte[] excelBytes = ExcelService.CreateWorkbook(datuak);
+            bool saved = await SaveGeneratedFileAsync($"{OutputFileBaseName("Logistika")}.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", excelBytes);
+            if (saved)
+            {
+                Exit();
+            }
+        }
+        catch
+        {
+            message = "Errorea fitxategia sortzean.";
+        }
     }
 
     private async Task CreateDocumentAndExitAsync()
@@ -110,14 +121,28 @@
             return;
         }
 
-        await DownloadAsync($"{outputName}.doc", "application/msword", result.Content);
-        Exit();
+        bool saved = await SaveGeneratedFileAsync($"{outputName}.doc", "application/msword", result.Content);
+        if (saved)
+        {
+            Exit();
+        }
     }
 
-    private async Task DownloadAsync(string fileName, string contentType, byte[] bytes)
+    private async Task<bool> SaveGeneratedFileAsync(string fileName, string contentType, byte[] bytes)
     {
-        // Drive-ra zuzenean gordetzeko Google Drive OAuth scopeak, Picker APIa eta fitxategiak igotzeko API/endpoint bat behar dira; oraingoz deskarga mantentzen da.
-        await JS.InvokeVoidAsync("downloadFileFromBase64", fileName, contentType, Convert.ToBase64String(bytes));
+        try
+        {
+            // Drive-ra zuzenean gordetzeko Google Drive OAuth scopeak, Picker APIa eta fitxategiak igotzeko API/endpoint bat behar dira; oraingoz deskarga mantentzen da.
+            await JS.InvokeVoidAsync("alert", DriveFallbackMessage);
+            await JS.InvokeVoidAsync("downloadFileFromBase64", fileName, contentType, Convert.ToBase64String(bytes));
+            message = DriveFallbackMessage;
+            return true;
+        }
+        catch
+        {
+            message = "Errorea fitxategia deskargatzean.";
+            return false;
+        }
     }
 
     private string OutputFileBaseName(string prefix)

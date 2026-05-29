@@ -197,6 +197,7 @@
     private string newMotaIzena = "";
     private string newMotaDeskribapena = "";
     private string? addMotaError;
+    private const string DriveFallbackMessage = "Oraingoz fitxategia ordenagailura deskargatuko da.";
     private static readonly string[] MailaAukerak = ["DBH2", "DBH3", "DBH4", "DBH3-4", "BATXI1", "BATXI2", "BATXI1-2"];
     private List<string> DayOptions => egunak.Count == 0
         ? ["Eguna1"]
@@ -385,15 +386,25 @@
 
     private async Task CreateExcelAsync()
     {
-        SaveToList();
-        if (!string.IsNullOrWhiteSpace(error))
+        try
         {
-            return;
-        }
+            SaveToList();
+            if (!string.IsNullOrWhiteSpace(error))
+            {
+                return;
+            }
 
-        byte[] bytes = ExcelService.CreateWorkbook(State.Bidaiak);
-        await DownloadAsync($"{OutputFileBaseName("Plangintza")}.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", bytes);
-        CleanAndExit();
+            byte[] bytes = ExcelService.CreateWorkbook(State.Bidaiak);
+            bool saved = await SaveGeneratedFileAsync($"{OutputFileBaseName("Plangintza")}.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", bytes);
+            if (saved)
+            {
+                CleanAndExit();
+            }
+        }
+        catch
+        {
+            message = "Errorea fitxategia sortzean.";
+        }
     }
 
     private async Task CreateDocumentAsync()
@@ -415,14 +426,28 @@
             return;
         }
 
-        await DownloadAsync($"{OutputFileBaseName("Plangintza")}.doc", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", result.Content);
-        CleanAndExit();
+        bool saved = await SaveGeneratedFileAsync($"{OutputFileBaseName("Plangintza")}.doc", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", result.Content);
+        if (saved)
+        {
+            CleanAndExit();
+        }
     }
 
-    private async Task DownloadAsync(string fileName, string contentType, byte[] bytes)
+    private async Task<bool> SaveGeneratedFileAsync(string fileName, string contentType, byte[] bytes)
     {
-        // Drive-ra zuzenean gordetzeko Google Drive OAuth scopeak, Picker APIa eta fitxategiak igotzeko API/endpoint bat behar dira; oraingoz deskarga mantentzen da.
-        await JS.InvokeVoidAsync("downloadFileFromBase64", fileName, contentType, Convert.ToBase64String(bytes));
+        try
+        {
+            // Drive-ra zuzenean gordetzeko Google Drive OAuth scopeak, Picker APIa eta fitxategiak igotzeko API/endpoint bat behar dira; oraingoz deskarga mantentzen da.
+            await JS.InvokeVoidAsync("alert", DriveFallbackMessage);
+            await JS.InvokeVoidAsync("downloadFileFromBase64", fileName, contentType, Convert.ToBase64String(bytes));
+            message = DriveFallbackMessage;
+            return true;
+        }
+        catch
+        {
+            message = "Errorea fitxategia deskargatzean.";
+            return false;
+        }
     }
 
     private string OutputFileBaseName(string prefix)
