@@ -479,6 +479,7 @@
         pendingDriveFile = null;
         lastDriveLink = result.WebViewLink;
         message = $"Fitxategia Drive-n gorde da: {result.FileName}. Karpeta: {result.FolderName}.";
+        CleanAndExit();
         return Task.CompletedTask;
     }
 
@@ -495,6 +496,7 @@
         pendingDriveFile = null;
         lastDriveLink = "";
         message = $"Drive-k errorea eman duenez, fitxategia deskargatu da: {fileName}.";
+        CleanAndExit();
         return Task.CompletedTask;
     }
 
