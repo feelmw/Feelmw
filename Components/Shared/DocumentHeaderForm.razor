@@ -4,7 +4,16 @@
         <p class="form-help">Eremu hutsak dokumentuan ??? gisa markatuko dira.</p>
 
         <div class="form-grid section-grid">
-            <label>Maila <InputText class="form-control" @bind-Value="Model.Maila" /></label>
+            <label>
+                Maila
+                <InputSelect class="form-select" @bind-Value="Model.Maila">
+                    <option value="">Aukeratu maila</option>
+                    @foreach (string aukera in MailaAukerak)
+                    {
+                        <option value="@aukera">@aukera</option>
+                    }
+                </InputSelect>
+            </label>
             <label>Ikastetxea <InputText class="form-control" @bind-Value="Model.Ikastetxea" /></label>
             <label>Datak <InputText class="form-control" @bind-Value="Model.Datak" /></label>
             <label>Ibilbidea <InputText class="form-control" @bind-Value="Model.Ibilbidea" /></label>
@@ -32,6 +41,8 @@
 
     [Parameter, EditorRequired]
     public EventCallback OnCancel { get; set; }
+
+    private static readonly string[] MailaAukerak = ["DBH2", "DBH3", "DBH4", "DBH3-4", "BATXI1", "BATXI2", "BATXI1-2"];
 
     private Task SaveAsync()
     {
