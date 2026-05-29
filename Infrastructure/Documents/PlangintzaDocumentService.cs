@@ -76,6 +76,7 @@ public sealed class PlangintzaDocumentService(HttpClient httpClient) : IPlangint
                 GehituAbisuaGehiegiBada(body, result.Warnings, "{{EGUNA_DATA}}", egunak.Count, "egun");
 
                 ReemplazarGoikoTaula(body, headerData);
+                NormalizatuEgunLaburpenMarkak(body);
                 Ordezkatu(body, "{{HIRIA}}", hotelak.Select(h => h.Hiria).ToList());
                 OrdezkatuHyperlink(mainPart, body, "{{OSTATUA_IZENA_HYPERLINK}}", hotelak);
                 Ordezkatu(body, "{{EGUNA_DATA}}", egunak.Select(e => e.Data).ToList());
@@ -85,6 +86,7 @@ public sealed class PlangintzaDocumentService(HttpClient httpClient) : IPlangint
                 EgunXehetasunakOrdezkatu(body, egunDokumentuak, result.Warnings);
                 EliminarFilasConMarkagailuakSobratuak(body);
                 GarbituMarkagailuSobratuak(body);
+                GarbituEgunLaburpenTaulak(body);
                 EliminarEgituraHutsak(body);
 
                 mainPart.Document.Save();
@@ -191,6 +193,26 @@ public sealed class PlangintzaDocumentService(HttpClient httpClient) : IPlangint
     private static void ReemplazarGoikoTaula(Body body, DocumentHeaderData headerData)
     {
         DocumentPlaceholderReplacer.Replace(body, DocumentHeaderPlaceholders.From(headerData));
+    }
+
+    private static void NormalizatuEgunLaburpenMarkak(Body body)
+    {
+        Regex regex = new(@"\{\{\s*EGUNA_\s*(DATA|GOIZA|ARRATSALDEA|GAUA)\s*\}\}", RegexOptions.IgnoreCase);
+
+        foreach (Paragraph paragraph in body.Descendants<Paragraph>().ToList())
+        {
+            string testua = ParagrafoTestua(paragraph);
+            if (!testua.Contains("{{EGUNA_", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            string normalizatua = regex.Replace(testua, match => $"{{{{EGUNA_{match.Groups[1].Value.ToUpperInvariant()}}}}}");
+            if (!string.Equals(testua, normalizatua, StringComparison.Ordinal))
+            {
+                ParagrafoTestuaEzarri(paragraph, normalizatua);
+            }
+        }
     }
 
     private static void EgunXehetasunakOrdezkatu(Body body, IReadOnlyList<EgunDokumentua> egunak, List<string> abisuak)
@@ -315,6 +337,103 @@ public sealed class PlangintzaDocumentService(HttpClient httpClient) : IPlangint
                 ParagrafoTestuaEzarri(paragraph, regex.Replace(testua, ""));
             }
         }
+    }
+
+    private static void GarbituEgunLaburpenTaulak(Body body)
+    {
+        foreach (Table table in body.Descendants<Table>().ToList())
+        {
+            if (!EgunLaburpenTaulaDa(table))
+            {
+                continue;
+            }
+
+            EzabatuEgunZutabeHutsak(table);
+            EzabatuEgunErrenkadaHutsak(table);
+
+            if (!EgunLaburpenTaulakEdukiaDu(table))
+            {
+                table.Remove();
+            }
+        }
+    }
+
+    private static bool EgunLaburpenTaulaDa(Table table)
+    {
+        string testua = TaulaTestua(table);
+        return testua.Contains("Goiza", StringComparison.OrdinalIgnoreCase)
+            && testua.Contains("Arratsaldea", StringComparison.OrdinalIgnoreCase)
+            && testua.Contains("Gaua", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void EzabatuEgunZutabeHutsak(Table table)
+    {
+        int maxCells = table.Elements<TableRow>().Select(row => row.Elements<TableCell>().Count()).DefaultIfEmpty(0).Max();
+        for (int columnIndex = maxCells - 1; columnIndex >= 1; columnIndex--)
+        {
+            bool hutsik = table.Elements<TableRow>()
+                .Select(row => row.Elements<TableCell>().ElementAtOrDefault(columnIndex))
+                .Where(cell => cell is not null)
+                .All(cell => string.IsNullOrWhiteSpace(ZeldaTestua(cell!)));
+
+            if (!hutsik)
+            {
+                continue;
+            }
+
+            foreach (TableRow row in table.Elements<TableRow>())
+            {
+                TableCell? cell = row.Elements<TableCell>().ElementAtOrDefault(columnIndex);
+                cell?.Remove();
+            }
+        }
+    }
+
+    private static void EzabatuEgunErrenkadaHutsak(Table table)
+    {
+        foreach (TableRow row in table.Elements<TableRow>().ToList())
+        {
+            List<TableCell> cells = row.Elements<TableCell>().ToList();
+            if (cells.Count == 0)
+            {
+                row.Remove();
+                continue;
+            }
+
+            string firstCellText = ZeldaTestua(cells[0]);
+            bool rowLabelOnly = EgunLaburpenEtiketaDa(firstCellText)
+                && cells.Skip(1).All(cell => string.IsNullOrWhiteSpace(ZeldaTestua(cell)));
+
+            if (rowLabelOnly)
+            {
+                row.Remove();
+            }
+        }
+    }
+
+    private static bool EgunLaburpenTaulakEdukiaDu(Table table)
+    {
+        foreach (TableRow row in table.Elements<TableRow>())
+        {
+            foreach (TableCell cell in row.Elements<TableCell>())
+            {
+                string testua = ZeldaTestua(cell);
+                if (!string.IsNullOrWhiteSpace(testua) && !EgunLaburpenEtiketaDa(testua))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static bool EgunLaburpenEtiketaDa(string testua)
+    {
+        testua = (testua ?? "").Trim();
+        return string.Equals(testua, "Goiza", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(testua, "Arratsaldea", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(testua, "Gaua", StringComparison.OrdinalIgnoreCase);
     }
 
     private static void EliminarEgituraHutsak(Body body)
@@ -458,6 +577,10 @@ public sealed class PlangintzaDocumentService(HttpClient httpClient) : IPlangint
     private static string ParagrafoakTestua(IEnumerable<Paragraph> paragraphs) => string.Concat(paragraphs.Select(ParagrafoTestua));
 
     private static string ParagrafoTestua(Paragraph paragraph) => string.Concat(paragraph.Descendants<WordText>().Select(text => text.Text));
+
+    private static string TaulaTestua(Table table) => string.Concat(table.Descendants<WordText>().Select(text => text.Text));
+
+    private static string ZeldaTestua(TableCell cell) => string.Concat(cell.Descendants<WordText>().Select(text => text.Text));
 
     private static void ParagrafoTestuaEzarri(Paragraph paragraph, string testua)
     {

@@ -104,6 +104,7 @@ public sealed class LogistikaDocumentService(HttpClient httpClient) : ILogistika
                     result.Warnings.Add("Txantiloiak ez dauka espero zen taula kopurua; markagailuak ordezkatu dira baina ez da taulen garbiketa osoa egin.");
                 }
 
+                NormalizarPosicionTablas(body);
                 mainPart.Document.Save();
             }
 
@@ -208,6 +209,51 @@ public sealed class LogistikaDocumentService(HttpClient httpClient) : ILogistika
     private static void OrdezkatuMarkak(Body body, Dictionary<string, string> mapa)
     {
         DocumentPlaceholderReplacer.Replace(body, mapa.Select(item => new DocumentPlaceholderValue(item.Key, item.Value)));
+    }
+
+    private static void NormalizarPosicionTablas(Body body)
+    {
+        foreach (Table table in body.Descendants<Table>())
+        {
+            TableProperties? properties = table.GetFirstChild<TableProperties>();
+            if (properties is null)
+            {
+                continue;
+            }
+
+            properties.RemoveAllChildren<TablePositionProperties>();
+            ReordenarJustificacionTabla(properties);
+        }
+    }
+
+    private static void ReordenarJustificacionTabla(TableProperties properties)
+    {
+        TableJustification? justification = properties.GetFirstChild<TableJustification>();
+        if (justification is null)
+        {
+            return;
+        }
+
+        TableWidth? width = properties.GetFirstChild<TableWidth>();
+        if (width is not null && justification.PreviousSibling() == width)
+        {
+            return;
+        }
+
+        TableStyle? style = properties.GetFirstChild<TableStyle>();
+        justification.Remove();
+        if (width is not null)
+        {
+            properties.InsertAfter(justification, width);
+        }
+        else if (style is not null)
+        {
+            properties.InsertAfter(justification, style);
+        }
+        else
+        {
+            properties.PrependChild(justification);
+        }
     }
 
     private static void ReemplazarGoikoTaula(Body body, DocumentHeaderData headerData)
