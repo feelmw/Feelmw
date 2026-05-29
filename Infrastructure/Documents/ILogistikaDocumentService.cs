@@ -9,7 +9,8 @@ public interface ILogistikaDocumentService
         IEnumerable<Ostalak> ostalak,
         IEnumerable<Ekintzak> ekintzak,
         IEnumerable<Garraioak> garraioak,
-        string nombreUsuario);
+        string nombreUsuario,
+        DocumentHeaderData headerData);
 
     Task<DocumentGenerationResult> CreateDocumentFromTemplatePathAsync(
         string templatePath,
@@ -17,5 +18,6 @@ public interface ILogistikaDocumentService
         IEnumerable<Ekintzak> ekintzak,
         IEnumerable<Garraioak> garraioak,
         string nombreUsuario,
+        DocumentHeaderData headerData,
         CancellationToken cancellationToken = default);
 }

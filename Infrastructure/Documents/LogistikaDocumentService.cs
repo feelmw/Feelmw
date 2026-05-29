@@ -13,12 +13,13 @@ public sealed class LogistikaDocumentService(HttpClient httpClient) : ILogistika
         IEnumerable<Ekintzak> ekintzak,
         IEnumerable<Garraioak> garraioak,
         string nombreUsuario,
+        DocumentHeaderData headerData,
         CancellationToken cancellationToken = default)
     {
         try
         {
             await using MemoryStream template = await DocumentTemplateResolver.LoadTemplateAsync(httpClient, templatePath, cancellationToken);
-            return CreateDocument(template, ostalak, ekintzak, garraioak, nombreUsuario);
+            return CreateDocument(template, ostalak, ekintzak, garraioak, nombreUsuario, headerData);
         }
         catch (Exception ex)
         {
@@ -31,7 +32,8 @@ public sealed class LogistikaDocumentService(HttpClient httpClient) : ILogistika
         IEnumerable<Ostalak> ostalak,
         IEnumerable<Ekintzak> ekintzak,
         IEnumerable<Garraioak> garraioak,
-        string nombreUsuario)
+        string nombreUsuario,
+        DocumentHeaderData headerData)
     {
         DocumentGenerationResult result = new()
         {
@@ -56,6 +58,8 @@ public sealed class LogistikaDocumentService(HttpClient httpClient) : ILogistika
                     result.Errors.Add("Word txantiloiak ez dauka dokumentuaren gorputza erabilgarri.");
                     return result;
                 }
+
+                ReemplazarGoikoTaula(body, headerData);
 
                 for (int i = 0; i < ostalakList.Count; i++)
                 {
@@ -137,25 +141,25 @@ public sealed class LogistikaDocumentService(HttpClient httpClient) : ILogistika
     {
         Dictionary<string, string> mapa = new()
         {
-            { $"{{{{Ost_Ostala_{index}}}}}", o.OstalaIzena },
-            { $"{{{{ost_bonoa_{index}}}}}", o.Bonoa },
-            { $"{{{{ost_helbidea_{index}}}}}", o.Helbidea },
-            { $"{{{{ost_lokalizatzailea_{index}}}}}", o.Lokalizatzailea },
-            { $"{{{{ost_gauak_{index}}}}}", o.Gauak.ToString() },
-            { $"{{{{ost_datak_{index}}}}}", o.Datak },
-            { $"{{{{ost_gelak_{index}}}}}", o.Gelak },
-            { $"{{{{ost_checkin_{index}}}}}", o.Checkin },
-            { $"{{{{ost_checkout_{index}}}}}", o.Checkout },
-            { $"{{{{ost_doc_{index}}}}}", o.Dokumentazioa },
-            { $"{{{{ost_harrera_{index}}}}}", o.Harrera },
-            { $"{{{{ost_gosaria_{index}}}}}", o.Gosaria },
-            { $"{{{{ost_bazkaria_{index}}}}}", o.Bazkaria },
-            { $"{{{{ost_afaria_{index}}}}}", o.Afaria },
-            { $"{{{{ost_toallak_{index}}}}}", o.Toailak ? "Bai" : "Ez" },
-            { $"{{{{ost_izarak_{index}}}}}", o.Izarak ? "Bai" : "Ez" },
-            { $"{{{{ost_fidantza_{index}}}}}", o.Fidantza },
-            { $"{{{{ost_luggage_{index}}}}}", o.Luggage },
-            { $"{{{{ost_inst_{index}}}}}", o.Instalazioak }
+            { $"{{{{OST_OSTALA_{index}}}}}", o.OstalaIzena },
+            { $"{{{{OST_BONOA_{index}}}}}", o.Bonoa },
+            { $"{{{{OST_HELBIDEA_{index}}}}}", o.Helbidea },
+            { $"{{{{OST_LOKALIZATZAILEA_{index}}}}}", o.Lokalizatzailea },
+            { $"{{{{OST_GAUAK_{index}}}}}", o.Gauak.ToString() },
+            { $"{{{{OST_DATAK_{index}}}}}", o.Datak },
+            { $"{{{{OST_GELAK_{index}}}}}", o.Gelak },
+            { $"{{{{OST_CHECKIN_{index}}}}}", o.Checkin },
+            { $"{{{{OST_CHECKOUT_{index}}}}}", o.Checkout },
+            { $"{{{{OST_DOC_{index}}}}}", o.Dokumentazioa },
+            { $"{{{{OST_HARRERA_{index}}}}}", o.Harrera },
+            { $"{{{{OST_GOSARIA_{index}}}}}", o.Gosaria },
+            { $"{{{{OST_BAZKARIA_{index}}}}}", o.Bazkaria },
+            { $"{{{{OST_AFARIA_{index}}}}}", o.Afaria },
+            { $"{{{{OST_TOALLAK_{index}}}}}", o.Toailak ? "Bai" : "Ez" },
+            { $"{{{{OST_IZARAK_{index}}}}}", o.Izarak ? "Bai" : "Ez" },
+            { $"{{{{OST_FIDANTZA_{index}}}}}", o.Fidantza },
+            { $"{{{{OST_LUGGAGE_{index}}}}}", o.Luggage },
+            { $"{{{{OST_INST_{index}}}}}", o.Instalazioak }
         };
 
         OrdezkatuMarkak(body, mapa);
@@ -165,20 +169,20 @@ public sealed class LogistikaDocumentService(HttpClient httpClient) : ILogistika
     {
         Dictionary<string, string> mapa = new()
         {
-            { $"{{{{eki_ekintza_{index}}}}}", e.EkintzaIzena },
-            { $"{{{{eki_bonoa_{index}}}}}", e.Bonoa },
-            { $"{{{{eki_eguna_{index}}}}}", e.Iraupena },
-            { $"{{{{eki_iraupena_{index}}}}}", e.Iraupena },
-            { $"{{{{eki_lokalizatzailea_{index}}}}}", e.Lokali },
-            { $"{{{{eki_kontaktua_{index}}}}}", e.Kontaktua },
-            { $"{{{{eki_elkartokia_{index}}}}}", e.Elkartokia },
-            { $"{{{{eki_eginbeharrekoa_{index}}}}}", e.Iristean },
-            { $"{{{{eki_eramanM_{index}}}}}", e.EramanM },
-            { $"{{{{eki_bertakoM_{index}}}}}", e.BertanM },
-            { $"{{{{eki_alda_{index}}}}}", e.Aldagela ? "Bai" : "Ez" },
-            { $"{{{{eki_komu_{index}}}}}", e.Komuna ? "Bai" : "Ez" },
-            { $"{{{{eki_egonlekua_{index}}}}}", e.Egonlekua },
-            { $"{{{{eki_info_{index}}}}}", e.Informazioa }
+            { $"{{{{EKI_EKINTZA_{index}}}}}", e.EkintzaIzena },
+            { $"{{{{EKI_BONOA_{index}}}}}", e.Bonoa },
+            { $"{{{{EKI_EGUNA_{index}}}}}", e.Iraupena },
+            { $"{{{{EKI_IRAUPENA_{index}}}}}", e.Iraupena },
+            { $"{{{{EKI_LOKALIZATZAILEA_{index}}}}}", e.Lokali },
+            { $"{{{{EKI_KONTAKTUA_{index}}}}}", e.Kontaktua },
+            { $"{{{{EKI_ELKARTOKIA_{index}}}}}", e.Elkartokia },
+            { $"{{{{EKI_EGINBEHARREKOA_{index}}}}}", e.Iristean },
+            { $"{{{{EKI_ERAMANM_{index}}}}}", e.EramanM },
+            { $"{{{{EKI_BERTAKOM_{index}}}}}", e.BertanM },
+            { $"{{{{EKI_ALDA_{index}}}}}", e.Aldagela ? "Bai" : "Ez" },
+            { $"{{{{EKI_KOMU_{index}}}}}", e.Komuna ? "Bai" : "Ez" },
+            { $"{{{{EKI_EGONLEKUA_{index}}}}}", e.Egonlekua },
+            { $"{{{{EKI_INFO_{index}}}}}", e.Informazioa }
         };
 
         OrdezkatuMarkak(body, mapa);
@@ -188,14 +192,14 @@ public sealed class LogistikaDocumentService(HttpClient httpClient) : ILogistika
     {
         Dictionary<string, string> mapa = new()
         {
-            { $"{{{{gar_garraioa_{index}}}}}", g.GarraioaIzena },
-            { $"{{{{gar_eguna_{index}}}}}", g.Eguna },
-            { $"{{{{gar_ordutegia_{index}}}}}", g.Ordutegia },
-            { $"{{{{gar_lokalizatzailea_{index}}}}}", g.Lokalizatzailea },
-            { $"{{{{gar_kontaktua_{index}}}}}", g.Kontaktua },
-            { $"{{{{gar_elkartokia_{index}}}}}", g.Elkargunea },
-            { $"{{{{gar_eginbeharrak_{index}}}}}", g.Eginbeharrak },
-            { $"{{{{gar_info_{index}}}}}", g.Informazioa }
+            { $"{{{{GAR_GARRAIOA_{index}}}}}", g.GarraioaIzena },
+            { $"{{{{GAR_EGUNA_{index}}}}}", g.Eguna },
+            { $"{{{{GAR_ORDUTEGIA_{index}}}}}", g.Ordutegia },
+            { $"{{{{GAR_LOKALIZATZAILEA_{index}}}}}", g.Lokalizatzailea },
+            { $"{{{{GAR_KONTAKTUA_{index}}}}}", g.Kontaktua },
+            { $"{{{{GAR_ELKARTOKIA_{index}}}}}", g.Elkargunea },
+            { $"{{{{GAR_EGINBEHARRAK_{index}}}}}", g.Eginbeharrak },
+            { $"{{{{GAR_INFO_{index}}}}}", g.Informazioa }
         };
 
         OrdezkatuMarkak(body, mapa);
@@ -203,21 +207,12 @@ public sealed class LogistikaDocumentService(HttpClient httpClient) : ILogistika
 
     private static void OrdezkatuMarkak(Body body, Dictionary<string, string> mapa)
     {
-        foreach (Paragraph paragraph in body.Descendants<Paragraph>())
-        {
-            string testua = string.Concat(paragraph.Descendants<WordText>().Select(t => t.Text));
-            if (!mapa.Keys.Any(testua.Contains))
-            {
-                continue;
-            }
+        DocumentPlaceholderReplacer.Replace(body, mapa.Select(item => new DocumentPlaceholderValue(item.Key, item.Value)));
+    }
 
-            foreach (KeyValuePair<string, string> item in mapa)
-            {
-                testua = testua.Replace(item.Key, item.Value);
-            }
-
-            ParagrafoTestuaEzarri(paragraph, testua);
-        }
+    private static void ReemplazarGoikoTaula(Body body, DocumentHeaderData headerData)
+    {
+        DocumentPlaceholderReplacer.Replace(body, DocumentHeaderPlaceholders.From(headerData));
     }
 
     private static void ParagrafoTestuaEzarri(Paragraph paragraph, string testua)

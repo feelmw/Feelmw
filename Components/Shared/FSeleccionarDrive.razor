@@ -1,0 +1,170 @@
+@inject IGoogleDriveService DriveService
+@inject IJSRuntime JS
+
+<div class="modal-backdrop-app" @onclick="CancelAsync">
+    <div class="modal-card-app drive-picker-modal" @onclick:stopPropagation="true">
+        <h2>Drive karpeta aukeratu</h2>
+        <p class="form-help">@FileName fitxategia gordetzeko karpeta hautatu.</p>
+
+        <div class="drive-search-row">
+            <InputText class="form-control" @bind-Value="searchTerm" placeholder="Karpetak bilatu" />
+            <button class="btn btn-outline-primary" type="button" @onclick="LoadFoldersAsync" disabled="@loading">Bilatu</button>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(validationMessage))
+        {
+            <div class="alert alert-info">@validationMessage</div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <div class="alert alert-danger">@errorMessage</div>
+        }
+
+        @if (loading)
+        {
+            <p class="form-help">Drive karpetak kargatzen...</p>
+        }
+        else
+        {
+            <div class="drive-folder-list">
+                @if (folders.Count == 0)
+                {
+                    <p class="form-help">Ez da karpetarik aurkitu.</p>
+                }
+                else
+                {
+                    @foreach (DriveFolder folder in folders)
+                    {
+                        <button class="drive-folder-option @(folder.Id == selectedFolderId ? "selected" : "")" type="button" @onclick="() => SelectFolder(folder)">
+                            <span>@folder.Name</span>
+                        </button>
+                    }
+                }
+            </div>
+        }
+
+        <div class="actions left modal-actions-app">
+            <button class="btn btn-primary" type="button" @onclick="SaveToDriveAsync" disabled="@(loading || saving)">Gorde Drive-n</button>
+            <button class="btn btn-outline-primary" type="button" @onclick="LoadFoldersAsync" disabled="@loading">Berriro saiatu</button>
+            @if (driveFailed)
+            {
+                <button class="btn btn-outline-secondary" type="button" @onclick="DownloadFallbackAsync">Deskargatu</button>
+            }
+            <button class="btn btn-secondary" type="button" @onclick="CancelAsync" disabled="@saving">Utzi</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public string FileName { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public string ContentType { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public byte[] Content { get; set; } = [];
+
+    [Parameter, EditorRequired]
+    public EventCallback<DriveSaveResult> OnSaved { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback OnCancel { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnFallbackDownloaded { get; set; }
+
+    private List<DriveFolder> folders = [];
+    private string searchTerm = "";
+    private string selectedFolderId = "";
+    private string selectedFolderName = "";
+    private string? validationMessage;
+    private string? errorMessage;
+    private bool loading;
+    private bool saving;
+    private bool driveFailed;
+
+    protected override Task OnInitializedAsync()
+    {
+        return LoadFoldersAsync();
+    }
+
+    private async Task LoadFoldersAsync()
+    {
+        validationMessage = null;
+        errorMessage = null;
+        driveFailed = false;
+        loading = true;
+
+        try
+        {
+            folders = (await DriveService.ListFoldersAsync(searchTerm)).ToList();
+            if (!folders.Any(folder => folder.Id == selectedFolderId))
+            {
+                selectedFolderId = "";
+                selectedFolderName = "";
+            }
+        }
+        catch (Exception ex)
+        {
+            folders = [];
+            driveFailed = true;
+            errorMessage = $"Drive-k ez du erantzun: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void SelectFolder(DriveFolder folder)
+    {
+        selectedFolderId = folder.Id;
+        selectedFolderName = folder.Name;
+        validationMessage = null;
+    }
+
+    private async Task SaveToDriveAsync()
+    {
+        if (string.IsNullOrWhiteSpace(selectedFolderId))
+        {
+            validationMessage = "Aukeratu Drive karpeta bat gordetzeko.";
+            return;
+        }
+
+        saving = true;
+        validationMessage = null;
+        errorMessage = null;
+        driveFailed = false;
+
+        try
+        {
+            DriveSaveResult result = await DriveService.UploadFileAsync(selectedFolderId, selectedFolderName, FileName, ContentType, Content);
+            await OnSaved.InvokeAsync(result);
+        }
+        catch (Exception ex)
+        {
+            driveFailed = true;
+            errorMessage = $"Fitxategia ezin izan da Drive-n gorde: {ex.Message}";
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+
+    private async Task DownloadFallbackAsync()
+    {
+        await JS.InvokeVoidAsync("downloadFileFromBase64", FileName, ContentType, Convert.ToBase64String(Content));
+        if (OnFallbackDownloaded.HasDelegate)
+        {
+            await OnFallbackDownloaded.InvokeAsync(FileName);
+        }
+    }
+
+    private Task CancelAsync()
+    {
+        return OnCancel.InvokeAsync();
+    }
+}

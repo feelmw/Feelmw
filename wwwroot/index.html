@@ -32,11 +32,13 @@
         window.feelmwAuth = (() => {
             let initialized = false;
             let clientId = "";
+            let tokenClient = null;
+            const tokenStorageKey = "feelmw.googleAccessToken";
             const waitForGoogle = () => new Promise((resolve, reject) => {
                 let attempts = 0;
                 const timer = setInterval(() => {
                     attempts++;
-                    if (window.google?.accounts?.id) {
+                    if (window.google?.accounts?.id && window.google?.accounts?.oauth2) {
                         clearInterval(timer);
                         resolve(true);
                     } else if (attempts > 100) {
@@ -55,6 +57,49 @@
 
                     await waitForGoogle();
                     initialized = true;
+                },
+                getAccessToken: async (scopes) => {
+                    if (!clientId) {
+                        throw new Error("Google saioa ez dago konfiguratuta.");
+                    }
+
+                    const cached = JSON.parse(sessionStorage.getItem(tokenStorageKey) || "null");
+                    if (cached?.accessToken && cached?.scopes === scopes && cached?.expiresAt > Date.now() + 60000) {
+                        return cached.accessToken;
+                    }
+
+                    await waitForGoogle();
+                    return await new Promise((resolve, reject) => {
+                        tokenClient = google.accounts.oauth2.initTokenClient({
+                            client_id: clientId,
+                            scope: scopes,
+                            callback: (response) => {
+                                if (response?.error) {
+                                    reject(response.error_description || response.error);
+                                    return;
+                                }
+
+                                const accessToken = response?.access_token || "";
+                                if (!accessToken) {
+                                    reject("Google Drive tokenik ez da jaso.");
+                                    return;
+                                }
+
+                                const expiresIn = Number(response.expires_in || 3600);
+                                sessionStorage.setItem(tokenStorageKey, JSON.stringify({
+                                    accessToken,
+                                    scopes,
+                                    expiresAt: Date.now() + (expiresIn * 1000)
+                                }));
+                                resolve(accessToken);
+                            },
+                            error_callback: (error) => {
+                                reject(error?.message || "Google Drive baimena ukatu da.");
+                            }
+                        });
+
+                        tokenClient.requestAccessToken({ prompt: cached?.accessToken ? "" : "consent" });
+                    });
                 },
                 renderButton: async (element, dotNetReference) => {
                     if (!clientId || !element) {
@@ -84,6 +129,7 @@
                     });
                 },
                 signOut: (email) => {
+                    sessionStorage.removeItem(tokenStorageKey);
                     if (email && window.google?.accounts?.id) {
                         google.accounts.id.disableAutoSelect();
                     }

@@ -690,6 +690,16 @@ h2 {
     margin-top: .25rem;
 }
 
+.document-header-modal {
+    max-width: 760px;
+    width: min(100%, 760px);
+}
+
+.form-help {
+    color: #555;
+    margin: 0;
+}
+
 .placeholder-page {
     align-items: center;
     display: flex;

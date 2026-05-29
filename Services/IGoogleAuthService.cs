@@ -14,4 +14,5 @@ public interface IGoogleAuthService
     Task SetCredentialAsync(string idToken, CancellationToken cancellationToken = default);
     Task SignOutAsync(CancellationToken cancellationToken = default);
     Task<string> GetRequiredIdTokenAsync(CancellationToken cancellationToken = default);
+    Task<string> GetRequiredAccessTokenAsync(string scopes, CancellationToken cancellationToken = default);
 }

@@ -4,7 +4,6 @@
 @inject IPlangintzaExcelService ExcelService
 @inject IPlangintzaDocumentService DocumentService
 @inject NavigationManager Nav
-@inject IJSRuntime JS
 
 <PageTitle>FeelMW - Plangintza</PageTitle>
 
@@ -17,7 +16,13 @@
 
 @if (!string.IsNullOrWhiteSpace(message))
 {
-    <div class="alert alert-info">@message</div>
+    <div class="alert alert-info">
+        <div>@message</div>
+        @if (!string.IsNullOrWhiteSpace(lastDriveLink))
+        {
+            <a href="@lastDriveLink" target="_blank" rel="noopener">Drive-n ireki</a>
+        }
+    </div>
 }
 
 @if (!string.IsNullOrWhiteSpace(error))
@@ -143,7 +148,7 @@
         <div class="actions left">
             <NavLink class="btn btn-outline-primary" href="plangintza/datuak">Datuak ikusi</NavLink>
             <button class="btn btn-primary" @onclick="SaveToList">Zerrendara</button>
-            <button class="btn btn-outline-primary" @onclick="CreateDocumentAsync">Sortu dok.</button>
+            <button class="btn btn-outline-primary" @onclick="ShowDocumentHeaderForm">Sortu dok.</button>
             <button class="btn btn-outline-primary" @onclick="CreateExcelAsync">Gorde</button>
             <button class="btn btn-secondary" @onclick="Exit">Irten</button>
         </div>
@@ -177,6 +182,21 @@
     </div>
 }
 
+@if (showDocumentHeaderForm)
+{
+    <DocumentHeaderForm Model="documentHeaderData" OnSave="CreateDocumentAsync" OnCancel="CloseDocumentHeaderForm" />
+}
+
+@if (pendingDriveFile is not null)
+{
+    <FSeleccionarDrive FileName="@pendingDriveFile.FileName"
+                       ContentType="@pendingDriveFile.ContentType"
+                       Content="@pendingDriveFile.Content"
+                       OnSaved="OnDriveSavedAsync"
+                       OnCancel="CancelDriveSaveAsync"
+                       OnFallbackDownloaded="OnFallbackDownloadedAsync" />
+}
+
 @code {
     private List<Hotelak> hotelPresets = [];
     private List<EkintzakPlan> activityPresets = [];
@@ -197,7 +217,10 @@
     private string newMotaIzena = "";
     private string newMotaDeskribapena = "";
     private string? addMotaError;
-    private const string DriveFallbackMessage = "Oraingoz fitxategia ordenagailura deskargatuko da.";
+    private bool showDocumentHeaderForm;
+    private DocumentHeaderData documentHeaderData = new();
+    private GeneratedFileData? pendingDriveFile;
+    private string lastDriveLink = "";
     private static readonly string[] MailaAukerak = ["DBH2", "DBH3", "DBH4", "DBH3-4", "BATXI1", "BATXI2", "BATXI1-2"];
     private List<string> DayOptions => egunak.Count == 0
         ? ["Eguna1"]
@@ -384,31 +407,41 @@
         message = "Bidaia zerrendara gehituta.";
     }
 
-    private async Task CreateExcelAsync()
+    private Task CreateExcelAsync()
     {
         try
         {
             SaveToList();
             if (!string.IsNullOrWhiteSpace(error))
             {
-                return;
+                return Task.CompletedTask;
             }
 
             byte[] bytes = ExcelService.CreateWorkbook(State.Bidaiak);
-            bool saved = await SaveGeneratedFileAsync($"{OutputFileBaseName("Plangintza")}.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", bytes);
-            if (saved)
-            {
-                CleanAndExit();
-            }
+            PrepareDriveSave($"{OutputFileBaseName("Plangintza")}.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", bytes);
         }
         catch
         {
             message = "Errorea fitxategia sortzean.";
         }
+
+        return Task.CompletedTask;
     }
 
-    private async Task CreateDocumentAsync()
+    private void ShowDocumentHeaderForm()
     {
+        documentHeaderData = BuildDefaultDocumentHeaderData();
+        showDocumentHeaderForm = true;
+    }
+
+    private void CloseDocumentHeaderForm()
+    {
+        showDocumentHeaderForm = false;
+    }
+
+    private async Task CreateDocumentAsync(DocumentHeaderData headerData)
+    {
+        showDocumentHeaderForm = false;
         SaveToList();
         if (!string.IsNullOrWhiteSpace(error))
         {
@@ -416,7 +449,7 @@
         }
 
         const string templatePath = "templates/Plangintza.docx";
-        DocumentGenerationResult result = await DocumentService.CreateDocumentFromTemplatePathAsync(templatePath, State.Bidaiak, State.DokumentuIzena, State.Ikastetxea);
+        DocumentGenerationResult result = await DocumentService.CreateDocumentFromTemplatePathAsync(templatePath, State.Bidaiak, State.DokumentuIzena, State.Ikastetxea, headerData);
         State.Mezuak.Clear();
         State.Mezuak.AddRange(result.Warnings);
         State.Mezuak.AddRange(result.Errors);
@@ -426,28 +459,43 @@
             return;
         }
 
-        bool saved = await SaveGeneratedFileAsync($"{OutputFileBaseName("Plangintza")}.doc", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", result.Content);
-        if (saved)
-        {
-            CleanAndExit();
-        }
+        PrepareDriveSave($"{OutputFileBaseName("Plangintza")}.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", result.Content);
     }
 
-    private async Task<bool> SaveGeneratedFileAsync(string fileName, string contentType, byte[] bytes)
+    private void PrepareDriveSave(string fileName, string contentType, byte[] bytes)
     {
-        try
+        lastDriveLink = "";
+        pendingDriveFile = new GeneratedFileData
         {
-            // Drive-ra zuzenean gordetzeko Google Drive OAuth scopeak, Picker APIa eta fitxategiak igotzeko API/endpoint bat behar dira; oraingoz deskarga mantentzen da.
-            await JS.InvokeVoidAsync("alert", DriveFallbackMessage);
-            await JS.InvokeVoidAsync("downloadFileFromBase64", fileName, contentType, Convert.ToBase64String(bytes));
-            message = DriveFallbackMessage;
-            return true;
-        }
-        catch
-        {
-            message = "Errorea fitxategia deskargatzean.";
-            return false;
-        }
+            FileName = fileName,
+            ContentType = contentType,
+            Content = bytes
+        };
+        message = "Aukeratu Google Drive karpeta fitxategia gordetzeko.";
+    }
+
+    private Task OnDriveSavedAsync(DriveSaveResult result)
+    {
+        pendingDriveFile = null;
+        lastDriveLink = result.WebViewLink;
+        message = $"Fitxategia Drive-n gorde da: {result.FileName}. Karpeta: {result.FolderName}.";
+        return Task.CompletedTask;
+    }
+
+    private Task CancelDriveSaveAsync()
+    {
+        pendingDriveFile = null;
+        lastDriveLink = "";
+        message = "Ez da karpetarik aukeratu; gordetzea bertan behera utzi da.";
+        return Task.CompletedTask;
+    }
+
+    private Task OnFallbackDownloadedAsync(string fileName)
+    {
+        pendingDriveFile = null;
+        lastDriveLink = "";
+        message = $"Drive-k errorea eman duenez, fitxategia deskargatu da: {fileName}.";
+        return Task.CompletedTask;
     }
 
     private string OutputFileBaseName(string prefix)
@@ -480,6 +528,16 @@
         }
 
         return $"{prefix} - {cleanMaila} {cleanName}";
+    }
+
+    private DocumentHeaderData BuildDefaultDocumentHeaderData()
+    {
+        return new DocumentHeaderData
+        {
+            Ikastetxea = ikastetxea,
+            Datak = string.Join(", ", egunak.Select(e => e.Data).Where(value => !string.IsNullOrWhiteSpace(value)).Distinct()),
+            Ibilbidea = string.IsNullOrWhiteSpace(hiria) ? documentName.Trim() : hiria
+        };
     }
 
     private void Exit()

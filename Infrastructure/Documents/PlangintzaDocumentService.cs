@@ -20,12 +20,13 @@ public sealed class PlangintzaDocumentService(HttpClient httpClient) : IPlangint
         IEnumerable<Bidaiak> bidaiak,
         string izena,
         string ikastetxea,
+        DocumentHeaderData headerData,
         CancellationToken cancellationToken = default)
     {
         try
         {
             await using MemoryStream template = await DocumentTemplateResolver.LoadTemplateAsync(httpClient, templatePath, cancellationToken);
-            return CreateDocument(template, bidaiak, izena, ikastetxea);
+            return CreateDocument(template, bidaiak, izena, ikastetxea, headerData);
         }
         catch (Exception ex)
         {
@@ -33,7 +34,7 @@ public sealed class PlangintzaDocumentService(HttpClient httpClient) : IPlangint
         }
     }
 
-    public DocumentGenerationResult CreateDocument(Stream templateStream, IEnumerable<Bidaiak> bidaiak, string izena, string ikastetxea)
+    public DocumentGenerationResult CreateDocument(Stream templateStream, IEnumerable<Bidaiak> bidaiak, string izena, string ikastetxea, DocumentHeaderData headerData)
     {
         DocumentGenerationResult result = new()
         {
@@ -74,7 +75,7 @@ public sealed class PlangintzaDocumentService(HttpClient httpClient) : IPlangint
                 GehituAbisuaGehiegiBada(body, result.Warnings, "{{OSTATUA_IZENA_HYPERLINK}}", hotelak.Count, "ostatu");
                 GehituAbisuaGehiegiBada(body, result.Warnings, "{{EGUNA_DATA}}", egunak.Count, "egun");
 
-                Ordezkatu(body, "{{IKASTETXEA}}", [ikastetxea]);
+                ReemplazarGoikoTaula(body, headerData);
                 Ordezkatu(body, "{{HIRIA}}", hotelak.Select(h => h.Hiria).ToList());
                 OrdezkatuHyperlink(mainPart, body, "{{OSTATUA_IZENA_HYPERLINK}}", hotelak);
                 Ordezkatu(body, "{{EGUNA_DATA}}", egunak.Select(e => e.Data).ToList());
@@ -185,6 +186,11 @@ public sealed class PlangintzaDocumentService(HttpClient httpClient) : IPlangint
 
             ParagrafoTestuaEzarri(paragraph, testua);
         }
+    }
+
+    private static void ReemplazarGoikoTaula(Body body, DocumentHeaderData headerData)
+    {
+        DocumentPlaceholderReplacer.Replace(body, DocumentHeaderPlaceholders.From(headerData));
     }
 
     private static void EgunXehetasunakOrdezkatu(Body body, IReadOnlyList<EgunDokumentua> egunak, List<string> abisuak)

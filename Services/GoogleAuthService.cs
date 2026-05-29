@@ -83,6 +83,22 @@ public sealed class GoogleAuthService(IConfiguration configuration, IJSRuntime j
         return Task.FromResult(CurrentUser.IdToken);
     }
 
+    public async Task<string> GetRequiredAccessTokenAsync(string scopes, CancellationToken cancellationToken = default)
+    {
+        if (CurrentUser is null)
+        {
+            throw new InvalidOperationException("Google saioa hasi behar da.");
+        }
+
+        string token = await jsRuntime.InvokeAsync<string>("feelmwAuth.getAccessToken", cancellationToken, scopes);
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            throw new InvalidOperationException("Google Drive baimena behar da.");
+        }
+
+        return token;
+    }
+
     private bool IsAllowedEmail(string email)
     {
         return email.EndsWith($"@{AllowedDomain}", StringComparison.OrdinalIgnoreCase);
