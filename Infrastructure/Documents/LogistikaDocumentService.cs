@@ -59,7 +59,7 @@ public sealed class LogistikaDocumentService(HttpClient httpClient) : ILogistika
                     return result;
                 }
 
-                ReemplazarGoikoTaula(body, headerData);
+                ReemplazarGoikoTaula(mainPart, body, headerData);
 
                 for (int i = 0; i < ostalakList.Count; i++)
                 {
@@ -256,9 +256,17 @@ public sealed class LogistikaDocumentService(HttpClient httpClient) : ILogistika
         }
     }
 
-    private static void ReemplazarGoikoTaula(Body body, DocumentHeaderData headerData)
+    private static void ReemplazarGoikoTaula(MainDocumentPart mainPart, Body body, DocumentHeaderData headerData)
     {
-        DocumentPlaceholderReplacer.Replace(body, DocumentHeaderPlaceholders.From(headerData));
+        IReadOnlyList<DocumentPlaceholderValue> replacements = DocumentHeaderPlaceholders.From(headerData);
+        DocumentPlaceholderReplacer.Replace(body, replacements);
+        foreach (HeaderPart headerPart in mainPart.HeaderParts)
+        {
+            if (headerPart.Header is not null)
+            {
+                DocumentPlaceholderReplacer.Replace(headerPart.Header, replacements);
+            }
+        }
     }
 
     private static void ParagrafoTestuaEzarri(Paragraph paragraph, string testua)

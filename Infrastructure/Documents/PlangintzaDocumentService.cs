@@ -75,7 +75,7 @@ public sealed class PlangintzaDocumentService(HttpClient httpClient) : IPlangint
                 GehituAbisuaGehiegiBada(body, result.Warnings, "{{OSTATUA_IZENA_HYPERLINK}}", hotelak.Count, "ostatu");
                 GehituAbisuaGehiegiBada(body, result.Warnings, "{{EGUNA_DATA}}", egunak.Count, "egun");
 
-                ReemplazarGoikoTaula(body, headerData);
+                ReemplazarGoikoTaula(mainPart, body, headerData);
                 NormalizatuEgunLaburpenMarkak(body);
                 Ordezkatu(body, "{{HIRIA}}", hotelak.Select(h => h.Hiria).ToList());
                 OrdezkatuHyperlink(mainPart, body, "{{OSTATUA_IZENA_HYPERLINK}}", hotelak);
@@ -190,9 +190,17 @@ public sealed class PlangintzaDocumentService(HttpClient httpClient) : IPlangint
         }
     }
 
-    private static void ReemplazarGoikoTaula(Body body, DocumentHeaderData headerData)
+    private static void ReemplazarGoikoTaula(MainDocumentPart mainPart, Body body, DocumentHeaderData headerData)
     {
-        DocumentPlaceholderReplacer.Replace(body, DocumentHeaderPlaceholders.From(headerData));
+        IReadOnlyList<DocumentPlaceholderValue> replacements = DocumentHeaderPlaceholders.From(headerData);
+        DocumentPlaceholderReplacer.Replace(body, replacements);
+        foreach (HeaderPart headerPart in mainPart.HeaderParts)
+        {
+            if (headerPart.Header is not null)
+            {
+                DocumentPlaceholderReplacer.Replace(headerPart.Header, replacements);
+            }
+        }
     }
 
     private static void NormalizatuEgunLaburpenMarkak(Body body)

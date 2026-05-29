@@ -35,16 +35,6 @@
         <div class="form-grid">
             <label>Dokumentua <InputText class="form-control" @bind-Value="documentName" /></label>
             <label>
-                Maila
-                <InputSelect class="form-select" @bind-Value="maila">
-                    @foreach (string aukera in MailaAukerak)
-                    {
-                        <option value="@aukera">@aukera</option>
-                    }
-                </InputSelect>
-            </label>
-            <label>Ikastetxea <InputText class="form-control" @bind-Value="ikastetxea" /></label>
-            <label>
                 Ostatua / hotela
                 <select class="form-select" value="@hotelName" @onchange="HotelSelected">
                     <option value="">Aukeratu ostala</option>
@@ -201,8 +191,6 @@
     private List<Hotelak> hotelPresets = [];
     private List<EkintzakPlan> activityPresets = [];
     private string documentName = "MyFeelPlangintza";
-    private string maila = "DBH2";
-    private string ikastetxea = "";
     private string hotelName = "";
     private string hiria = "";
     private string helbideaUrl = "";
@@ -221,7 +209,6 @@
     private DocumentHeaderData documentHeaderData = new();
     private GeneratedFileData? pendingDriveFile;
     private string lastDriveLink = "";
-    private static readonly string[] MailaAukerak = ["DBH2", "DBH3", "DBH4", "DBH3-4", "BATXI1", "BATXI2", "BATXI1-2"];
     private List<string> DayOptions => egunak.Count == 0
         ? ["Eguna1"]
         : egunak.Select(e => string.IsNullOrWhiteSpace(e.Data) ? $"Eguna{e.Eguna}" : e.Data).ToList();
@@ -229,7 +216,6 @@
     protected override async Task OnInitializedAsync()
     {
         documentName = State.DokumentuIzena;
-        ikastetxea = State.Ikastetxea;
 
         try
         {
@@ -402,7 +388,6 @@
             cleanActivities);
 
         State.DokumentuIzena = BuildDocumentName();
-        State.Ikastetxea = ikastetxea;
         State.UpsertBidaia(bidaia);
         message = "Bidaia zerrendara gehituta.";
     }
@@ -448,6 +433,7 @@
             return;
         }
 
+        State.Ikastetxea = headerData.IkastetxeaOsatua;
         const string templatePath = "templates/Plangintza.docx";
         DocumentGenerationResult result = await DocumentService.CreateDocumentFromTemplatePathAsync(templatePath, State.Bidaiak, State.DokumentuIzena, State.Ikastetxea, headerData);
         State.Mezuak.Clear();
@@ -508,35 +494,24 @@
     private string BuildDocumentName(string prefix = "Plangintza")
     {
         string cleanName = Path.GetFileNameWithoutExtension(documentName.Trim());
-        string cleanMaila = maila.Trim();
         if (cleanName.StartsWith($"{prefix} - ", StringComparison.OrdinalIgnoreCase))
         {
             return cleanName;
         }
 
-        if (string.IsNullOrWhiteSpace(cleanMaila) && string.IsNullOrWhiteSpace(cleanName))
+        if (string.IsNullOrWhiteSpace(cleanName))
         {
             return prefix;
         }
 
-        if (string.IsNullOrWhiteSpace(cleanMaila))
-        {
-            return $"{prefix} - {cleanName}";
-        }
-
-        if (string.IsNullOrWhiteSpace(cleanName))
-        {
-            return $"{prefix} - {cleanMaila}";
-        }
-
-        return $"{prefix} - {cleanMaila} {cleanName}";
+        return $"{prefix} - {cleanName}";
     }
 
     private DocumentHeaderData BuildDefaultDocumentHeaderData()
     {
         return new DocumentHeaderData
         {
-            Ikastetxea = ikastetxea,
+            Ikastetxea = State.Ikastetxea,
             Datak = string.Join(", ", egunak.Select(e => e.Data).Where(value => !string.IsNullOrWhiteSpace(value)).Distinct()),
             Ibilbidea = string.IsNullOrWhiteSpace(hiria) ? documentName.Trim() : hiria
         };
@@ -559,8 +534,6 @@
     private void ClearForm(bool addInitialRows = true)
     {
         documentName = "";
-        maila = "DBH2";
-        ikastetxea = "";
         hotelName = "";
         hiria = "";
         helbideaUrl = "";

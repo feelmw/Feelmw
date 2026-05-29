@@ -7,7 +7,7 @@ namespace FeelmwLogistika.Blazor.Infrastructure.Documents;
 
 internal static class DocumentPlaceholderReplacer
 {
-    public static void Replace(Body body, IEnumerable<DocumentPlaceholderValue> values)
+    public static void Replace(OpenXmlElement root, IEnumerable<DocumentPlaceholderValue> values)
     {
         List<DocumentPlaceholderValue> replacements = values
             .Where(value => !string.IsNullOrWhiteSpace(value.Marker))
@@ -18,7 +18,7 @@ internal static class DocumentPlaceholderReplacer
             return;
         }
 
-        foreach (Paragraph paragraph in body.Descendants<Paragraph>().ToList())
+        foreach (Paragraph paragraph in root.Descendants<Paragraph>().ToList())
         {
             string text = ParagraphText(paragraph);
             if (!replacements.Any(value => text.Contains(value.Marker, StringComparison.Ordinal)))
